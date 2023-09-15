@@ -7,22 +7,23 @@ import (
 type Player struct {
 	animation   LinearAnimation
 	position    rl.Vector2
+	playerSize  float32
 	textureBox  rl.Rectangle
 	texture     rl.Texture2D
 	textureSize float32
 }
 
-func NewPlayer(image *rl.Image) Player {
-	playerSize := 96
+func NewPlayer(image *rl.Image, startPosition rl.Vector2, playerSize float32) Player {
 	frameCount := 5
 
-	rl.ImageResizeNN(image, int32(playerSize)*int32(frameCount), int32(playerSize))
+	// rl.ImageResizeNN(image, int32(playerSize)*int32(frameCount), int32(playerSize))
 
 	return Player{
 		textureSize: float32(playerSize),
 		texture:     rl.LoadTextureFromImage(image),
-		textureBox:  rl.NewRectangle(0, 0, float32(playerSize), float32(playerSize)),
-		position:    rl.Vector2{X: 50, Y: 50},
+		textureBox:  rl.NewRectangle(0, 0, 32., 32.),
+		position:    startPosition,
+		playerSize:  playerSize,
 		animation: LinearAnimation{
 			duration:    float32(1.),
 			elapsedTime: float32(0.),
@@ -48,5 +49,7 @@ func UpdatePlayer(player Player) Player {
 }
 
 func DrawPlayer(player Player) {
-	rl.DrawTextureRec(player.texture, player.textureBox, player.position, rl.White)
+	dest := rl.NewRectangle(player.position.X, player.position.Y, player.textureSize, player.textureSize)
+	rl.DrawTexturePro(player.texture, player.textureBox, dest,
+		rl.NewVector2(player.textureSize/2., player.textureSize/2.), 0., rl.White)
 }

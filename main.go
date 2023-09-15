@@ -12,7 +12,7 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	player := NewPlayer(image)
+	player := NewPlayer(image, rl.NewVector2(50., 50.), float32(spriteSize*2))
 
 	rl.UnloadImage(image)
 
