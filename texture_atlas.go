@@ -42,7 +42,7 @@ func makeRectangles(count int, stride float32, startPosition float32, width floa
 	bs := make([]rl.Rectangle, count)
 
 	for i := 0; i < count; i++ {
-		bs = append(bs, rl.NewRectangle(startPosition+(stride*float32(i)), 0, width, height))
+		bs[i] = rl.NewRectangle(startPosition+(stride*float32(i)), 0, width, height)
 	}
 
 	return bs
