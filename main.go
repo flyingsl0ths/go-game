@@ -4,7 +4,7 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 
 func main() {
 	windowDimens := [2]float32{1280, 720}
-	spriteSize := 32.
+	spriteSize := float32(64.)
 
 	rl.InitWindow(int32(windowDimens[0]), int32(windowDimens[1]), "Catcher")
 
@@ -14,7 +14,7 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	player := NewPlayer(image, rl.NewVector2(50., 50.), float32(spriteSize*2))
+	player := NewPlayer(image, rl.NewVector2(50., (windowDimens[1]/2.)+20.), spriteSize+32.)
 
 	rl.UnloadImage(image)
 
@@ -25,11 +25,11 @@ func main() {
 
 		rl.ClearBackground(rl.RayWhite)
 
-		player = UpdatePlayer(player)
+		player = UpdatePlayer(player, rl.GetFrameTime())
 
 		rl.DrawTexture(textures.bg, 0, 0, rl.White)
 
-		DrawPlatforms(&textures, windowDimens, float32(spriteSize*2))
+		DrawPlatforms(&textures, windowDimens, spriteSize)
 
 		DrawPlayer(player)
 
