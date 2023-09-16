@@ -56,12 +56,12 @@ func handleMovement(player Player, delta float32) Player {
 	difference := float32(0.)
 	movement := player_.physics.velocity.X * delta
 
-	if rl.IsKeyDown(rl.KeyLeft) {
+	if rl.IsKeyDown(rl.KeyLeft) || rl.IsKeyDown(rl.KeyA) {
 		difference = -movement
 		player_.textureBox.Width = -player.originalSize
 	}
 
-	if rl.IsKeyDown(rl.KeyRight) {
+	if rl.IsKeyDown(rl.KeyRight) || rl.IsKeyDown(rl.KeyD) {
 		difference = movement
 		player_.textureBox.Width = player.originalSize
 	}
