@@ -107,11 +107,7 @@ func handleSpriteAnimation(player Player, delta float32) Player {
 
 	currentFrame := NextFrame(player_.animation)
 
-	if currentFrame == 0 {
-		player_.textureBox.X = 0
-	} else {
-		player_.textureBox.X = float32(currentFrame) * player_.textureSize
-	}
+	player_.textureBox.X = float32(currentFrame) * player_.originalSize
 
 	return player_
 }
