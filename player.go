@@ -15,8 +15,11 @@ type Player struct {
 	physics      Physics[rl.Vector2]
 }
 
-func NewPlayer(image *rl.Image, startPosition rl.Vector2, playerSize float32) Player {
+func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize float32) Player {
 	frameCount := 5
+
+	spriteSheet := rl.LoadImage(spriteSheetPath)
+	defer rl.UnloadImage(spriteSheet)
 
 	return Player{
 		animation: LinearAnimation{
@@ -29,7 +32,7 @@ func NewPlayer(image *rl.Image, startPosition rl.Vector2, playerSize float32) Pl
 		originalSize: 32.,
 		playerSize:   playerSize,
 		position:     startPosition,
-		texture:      rl.LoadTextureFromImage(image),
+		texture:      rl.LoadTextureFromImage(spriteSheet),
 		textureBox:   rl.NewRectangle(0, 0, 32., 32.),
 		textureSize:  float32(playerSize),
 		physics: Physics[rl.Vector2]{

@@ -10,13 +10,9 @@ func main() {
 
 	defer rl.CloseWindow()
 
-	image := rl.LoadImage("./assets/player.png")
-
 	rl.SetTargetFPS(60)
 
-	player := NewPlayer(image, rl.NewVector2(50., (windowDimens[1]/2.)+20.), spriteSize+32.)
-
-	rl.UnloadImage(image)
+	player := NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+20.), spriteSize+32.)
 
 	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", windowDimens)
 
