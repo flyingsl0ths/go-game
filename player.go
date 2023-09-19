@@ -1,12 +1,11 @@
 package main
 
-import (
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
+import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Player struct {
 	animation    LinearAnimation
 	isMoving     bool
+	isJumping    bool
 	originalSize float32
 	playerSize   float32
 	position     rl.Vector2
@@ -26,6 +25,7 @@ func NewPlayer(image *rl.Image, startPosition rl.Vector2, playerSize float32) Pl
 			frames:      uint32(frameCount),
 		},
 		isMoving:     false,
+		isJumping:    false,
 		originalSize: 32.,
 		playerSize:   playerSize,
 		position:     startPosition,
@@ -68,6 +68,7 @@ func handleMovement(player Player, delta float32) Player {
 
 	if rl.IsKeyDown(rl.KeySpace) && player_.physics.velocity.Y == 0. {
 		player_.physics.velocity.Y = player_.physics.jumpHeight
+		player_.isJumping = true
 	}
 
 	player_.position.X += difference
@@ -80,6 +81,10 @@ func handleMovement(player Player, delta float32) Player {
 }
 
 func handlePhysics(player Player, delta float32) Player {
+	if !player.isJumping {
+		return player
+	}
+
 	player_ := player
 
 	if player_.physics.velocity.Y != 0. {
@@ -90,6 +95,7 @@ func handlePhysics(player Player, delta float32) Player {
 	if player_.position.Y > player_.physics.ground {
 		player_.physics.velocity.Y = 0.
 		player_.position.Y = player_.physics.ground
+		player_.isJumping = false
 	}
 
 	return player_
@@ -98,8 +104,13 @@ func handlePhysics(player Player, delta float32) Player {
 func handleSpriteAnimation(player Player, delta float32) Player {
 	player_ := player
 
-	if !player.isMoving {
-		player_.textureBox.X = 32. * 5.
+	if player_.isJumping {
+		player_.textureBox.X = player_.originalSize * 6.
+		return player_
+	}
+
+	if !player_.isMoving {
+		player_.textureBox.X = player_.originalSize * 5.
 		return player_
 	}
 
