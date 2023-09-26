@@ -12,9 +12,9 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	player := NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+20.), spriteSize+32.)
+	player := NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.)
 
-	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", windowDimens)
+	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", "./assets/hud.png", windowDimens)
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
@@ -23,7 +23,9 @@ func main() {
 
 		player = UpdatePlayer(player, rl.GetFrameTime())
 
-		rl.DrawTexture(textures.bg, 0, 0, rl.White)
+		rl.DrawTexture(textures.textureSheets.bg, 0, 0, rl.White)
+
+		DrawHUD(&textures, windowDimens)
 
 		DrawPlatforms(&textures, windowDimens, spriteSize)
 
