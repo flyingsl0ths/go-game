@@ -14,7 +14,7 @@ type TextureAtlas struct {
 	platforms     []rl.Rectangle
 	overlays      []rl.Rectangle
 	scenery       []rl.Rectangle
-	food          Grid[rl.Rectangle]
+	food          []rl.Rectangle
 	objects       []rl.Rectangle
 }
 
@@ -36,14 +36,11 @@ func NewTextureAtlas(fileName string, bgFileName string, hudFileName string, win
 			hud:   rl.LoadTextureFromImage(hud),
 		},
 		hud:       makeHUDRectangles(),
-		platforms: makeRectangles(7, 15, 0, 15, 16),
-		overlays:  makeRectangles(2, 17, 105, 17, 16),
-		scenery:   makeRectangles(5, 16, 139, 16, 16),
-		food: Grid[rl.Rectangle]{
-			objects: append(append(makeRectangles(15, 16, 16, 16, 16), makeRectangles(15, 16, 32, 16, 16)...), makeRectangles(15, 16, 48, 16, 16)...),
-			columns: 15,
-			rows:    3},
-		objects: makeRectangles(15, 16, 64, 16, 16),
+		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),
+		overlays:  makeRectangles(2, 17, rl.NewVector2(105., 0.), 17, 16),
+		scenery:   makeRectangles(5, 16, rl.NewVector2(139., 0.), 16, 16),
+		food:      makeCollectablesRects(),
+		objects:   makeRectangles(15, 16, rl.NewVector2(0., 64.), 16, 15),
 	}
 
 	return atlas
@@ -79,11 +76,18 @@ func makeHUDRectangles() []rl.Rectangle {
 	return rs
 }
 
-func makeRectangles(count int, stride float32, startPosition float32, width float32, height float32) []rl.Rectangle {
+func makeCollectablesRects() []rl.Rectangle {
+	collectables := makeRectangles(15, 16, rl.NewVector2(0., 16.), 16, 15)
+	collectables = append(collectables, makeRectangles(15, 16, rl.NewVector2(0., 32.), 16, 15)...)
+	collectables = append(collectables, makeRectangles(15, 16, rl.NewVector2(0., 48.), 16, 15)...)
+	return collectables
+}
+
+func makeRectangles(count int, stride float32, startPosition rl.Vector2, width float32, height float32) []rl.Rectangle {
 	bs := make([]rl.Rectangle, count)
 
 	for i := 0; i < count; i++ {
-		bs[i] = rl.NewRectangle(startPosition+(stride*float32(i)), 0, width, height)
+		bs[i] = rl.NewRectangle(startPosition.X+(stride*float32(i)), startPosition.Y, width, height)
 	}
 
 	return bs
