@@ -1,4 +1,4 @@
-package main
+package game
 
 type Physics[T any] struct {
 	gravity    float32

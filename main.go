@@ -1,6 +1,9 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	gm "github.com/flyingsl0ths/go-game/game"
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 func main() {
 	windowDimens := [2]float32{1280, 720}
@@ -12,25 +15,9 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	player := NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.)
-
-	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", "./assets/hud.png", windowDimens)
+	game := gm.NewGameState(windowDimens, spriteSize)
 
 	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
-
-		rl.ClearBackground(rl.RayWhite)
-
-		player = UpdatePlayer(player, rl.GetFrameTime())
-
-		rl.DrawTexture(textures.textureSheets.bg, 0, 0, rl.White)
-
-		DrawHUD(&textures, windowDimens)
-
-		DrawPlatforms(&textures, windowDimens, spriteSize)
-
-		DrawPlayer(player)
-
-		rl.EndDrawing()
+		gm.RunGame(&game, rl.GetFrameTime())
 	}
 }

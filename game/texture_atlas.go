@@ -1,4 +1,4 @@
-package main
+package game
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -39,7 +39,7 @@ func NewTextureAtlas(fileName string, bgFileName string, hudFileName string, win
 		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),
 		overlays:  makeRectangles(2, 17, rl.NewVector2(105., 0.), 17, 16),
 		scenery:   makeRectangles(5, 16, rl.NewVector2(139., 0.), 16, 16),
-		food:      makeCollectablesRects(),
+		food:      makeCollectables(),
 		objects:   makeRectangles(15, 16, rl.NewVector2(0., 64.), 16, 15),
 	}
 
@@ -76,7 +76,7 @@ func makeHUDRectangles() []rl.Rectangle {
 	return rs
 }
 
-func makeCollectablesRects() []rl.Rectangle {
+func makeCollectables() []rl.Rectangle {
 	collectables := makeRectangles(15, 16, rl.NewVector2(0., 16.), 16, 15)
 	collectables = append(collectables, makeRectangles(15, 16, rl.NewVector2(0., 32.), 16, 15)...)
 	collectables = append(collectables, makeRectangles(15, 16, rl.NewVector2(0., 48.), 16, 15)...)
@@ -84,11 +84,11 @@ func makeCollectablesRects() []rl.Rectangle {
 }
 
 func makeRectangles(count int, stride float32, startPosition rl.Vector2, width float32, height float32) []rl.Rectangle {
-	bs := make([]rl.Rectangle, count)
+	rects := make([]rl.Rectangle, count)
 
 	for i := 0; i < count; i++ {
-		bs[i] = rl.NewRectangle(startPosition.X+(stride*float32(i)), startPosition.Y, width, height)
+		rects[i] = rl.NewRectangle(startPosition.X+(stride*float32(i)), startPosition.Y, width, height)
 	}
 
-	return bs
+	return rects
 }

@@ -1,13 +1,13 @@
-package main
+package game
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
-func DrawHUD(textureAtlas *TextureAtlas, windowDimens [2]float32) {
-	drawPlayerIcons(textureAtlas)
-	drawCollectableIcons(textureAtlas, windowDimens)
+func DrawHUD(textureAtlas *TextureAtlas, windowDimens WindowDimens, lives Lives, points Points) {
+	drawPlayerIcons(textureAtlas, lives)
+	drawCollectableIcons(textureAtlas, windowDimens, points)
 }
 
-func drawPlayerIcons(textureAtlas *TextureAtlas) {
+func drawPlayerIcons(textureAtlas *TextureAtlas, lives Lives) {
 	const PADDING float32 = 5.
 	lifeIconPos := rl.NewVector2(PADDING, PADDING)
 
@@ -45,13 +45,13 @@ func drawPlayerIcons(textureAtlas *TextureAtlas) {
 		rl.NewVector2(0., 0.), 0., rl.White)
 }
 
-func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens [2]float32) {
+func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens, points Points) {
 	const PADDING float32 = 5.
 
 	pointsIcon := textureAtlas.hud[1]
 	multiplierIcon := textureAtlas.hud[2]
 
-	windowWidth := windowDimens[0]
+	windowWidth := windowDimens.width
 	multiplierIconSize := multiplierIcon.Width * 2
 	pointsIconSize := pointsIcon.Width * 2
 
@@ -89,8 +89,8 @@ func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens [2]float32) {
 	}
 }
 
-func DrawPlatforms(textureAtlas *TextureAtlas, windowDimens [2]float32, textureSize float32) {
-	startPosition := [2]float32{windowDimens[0] / 2., windowDimens[1]/2. + textureSize*2}
+func DrawPlatforms(textureAtlas *TextureAtlas, windowDimens WindowDimens, textureSize float32) {
+	startPosition := [2]float32{windowDimens.width / 2., windowDimens.height/2. + textureSize*2}
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.level,
 		textureAtlas.platforms[0],
@@ -108,7 +108,7 @@ func DrawPlatforms(textureAtlas *TextureAtlas, windowDimens [2]float32, textureS
 		rl.NewVector2(0., 0.), 0., rl.White)
 
 	const currentlyDrawnAtEdge = 3
-	toDraw := int(windowDimens[0]/textureSize) - currentlyDrawnAtEdge
+	toDraw := int(windowDimens.width/textureSize) - currentlyDrawnAtEdge
 
 	for i := 3; i < toDraw; i++ {
 		rl.DrawTexturePro(textureAtlas.textureSheets.level,
@@ -121,16 +121,16 @@ func DrawPlatforms(textureAtlas *TextureAtlas, windowDimens [2]float32, textureS
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.level,
 		textureAtlas.platforms[total-3],
-		rl.NewRectangle(windowDimens[0]-(textureSize*3), startPosition[1], textureSize, textureSize),
+		rl.NewRectangle(windowDimens.width-(textureSize*3), startPosition[1], textureSize, textureSize),
 		rl.NewVector2(0., 0.), 0., rl.White)
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.level,
 		textureAtlas.platforms[total-2],
-		rl.NewRectangle(windowDimens[0]-(textureSize*2), startPosition[1], textureSize, textureSize),
+		rl.NewRectangle(windowDimens.width-(textureSize*2), startPosition[1], textureSize, textureSize),
 		rl.NewVector2(0., 0.), 0., rl.White)
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.level,
 		textureAtlas.platforms[total-1],
-		rl.NewRectangle(windowDimens[0]-textureSize, startPosition[1], textureSize, textureSize),
+		rl.NewRectangle(windowDimens.width-textureSize, startPosition[1], textureSize, textureSize),
 		rl.NewVector2(0., 0.), 0., rl.White)
 }
