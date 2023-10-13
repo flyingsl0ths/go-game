@@ -31,8 +31,6 @@ type GameState struct {
 }
 
 func NewGameState(windowDimens [2]float32, spriteSize float32) GameState {
-	player := NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.)
-
 	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", "./assets/hud.png", windowDimens)
 
 	spawnBoundaries := Boundaries{
@@ -46,11 +44,11 @@ func NewGameState(windowDimens [2]float32, spriteSize float32) GameState {
 	}
 
 	return GameState{
-		collectables: NewSpawner(1.25, 150., len(textures.food), len(textures.food), spawnBoundaries, mover),
+		collectables: NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries, mover),
 		highScores:   []Score{},
-		objects:      NewSpawner(rl.GetFrameTime()*10, 300., len(textures.objects), len(textures.objects), spawnBoundaries, mover),
+		objects:      NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries, mover),
 		playerLives:  [2]rune{'0', '1'},
-		player:       player,
+		player:       NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.),
 		playerPoints: [9]rune{'0', '0', '0', '0', '0', '0', '0', '0', '0'},
 		spriteSize:   spriteSize,
 		state:        State(GAME),
@@ -89,6 +87,8 @@ func updateGameState(game *GameState, delta float32) {
 	game.player = UpdatePlayer(game.player, delta)
 
 	UpdateSpawner(&game.objects, delta)
+
+	UpdateSpawner(&game.collectables, delta)
 }
 
 func drawGameState(game *GameState) {
@@ -106,10 +106,19 @@ func drawGameState(game *GameState) {
 }
 
 func drawSpawnedObjects(game *GameState) {
+
+	for _, item := range game.collectables.items {
+		rl.DrawTexturePro(game.textures.textureSheets.level,
+			game.textures.food[item.itemID],
+			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
+			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
+	}
+
 	for _, item := range game.objects.items {
 		rl.DrawTexturePro(game.textures.textureSheets.level,
 			game.textures.objects[item.itemID],
 			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
 			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
 	}
+
 }
