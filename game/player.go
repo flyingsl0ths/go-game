@@ -36,7 +36,7 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize floa
 		textureBox:   rl.NewRectangle(0, 0, 32., 32.),
 		textureSize:  float32(playerSize),
 		physics: Physics[rl.Vector2]{
-			gravity: -500, ground: startPosition.Y, jumpHeight: -300, velocity: rl.NewVector2(160., 0.)},
+			gravity: -500, ground: startPosition.Y, jumpHeight: -300, velocity: rl.NewVector2(200., 0.)},
 	}
 }
 
