@@ -6,8 +6,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type foo struct{}
-
 type Item struct {
 	gravity  float32
 	itemID   int
