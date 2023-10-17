@@ -11,6 +11,7 @@ type Item struct {
 	itemID   int
 	position rl.Vector2
 	rotation float32
+	collided bool
 }
 
 type Boundaries struct {
@@ -39,7 +40,6 @@ func NewSpawner(duration float32, gravity float32, idPoolSize int, spawnLimit in
 		items:      []Item{},
 		spawnLimit: spawnLimit,
 		timeOut:    0.0,
-		mover:      mover,
 	}
 }
 
@@ -90,7 +90,7 @@ func makeItem(boundaryX float32, boundaryY float32, idPoolSize int, gravityRange
 
 func reSpawnItems(spawner *Spawner) {
 	for i, item := range spawner.items {
-		if item.position.Y >= spawner.boundaries.bottom {
+		if item.position.Y >= spawner.boundaries.bottom || item.collided {
 			spawner.items[i] = makeItem(spawner.boundaries.width, spawner.boundaries.top, spawner.idPoolSize, spawner.gravity)
 		}
 
