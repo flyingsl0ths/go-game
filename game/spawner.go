@@ -30,7 +30,7 @@ type Spawner struct {
 	mover      func(*Item, float32)
 }
 
-func NewSpawner(duration float32, gravity float32, idPoolSize int, spawnLimit int, spawnBoundaries Boundaries, mover func(*Item, float32)) Spawner {
+func NewSpawner(duration float32, gravity float32, idPoolSize int, spawnLimit int, spawnBoundaries Boundaries) Spawner {
 	return Spawner{
 		boundaries: spawnBoundaries,
 		clock:      duration,
@@ -43,7 +43,7 @@ func NewSpawner(duration float32, gravity float32, idPoolSize int, spawnLimit in
 	}
 }
 
-func UpdateSpawner(spawner *Spawner, delta float32) {
+func UpdateSpawner(spawner *Spawner, mover func(*Item, float32), delta float32) {
 	if !canSpawn(spawner) {
 		spawner.clock = 0.0
 	} else {
@@ -55,7 +55,7 @@ func UpdateSpawner(spawner *Spawner, delta float32) {
 	}
 
 	for i := range spawner.items {
-		spawner.mover(&spawner.items[i], delta)
+		mover(&spawner.items[i], delta)
 	}
 
 	reSpawnItems(spawner)
