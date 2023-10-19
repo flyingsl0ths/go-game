@@ -16,16 +16,13 @@ type Player struct {
 }
 
 func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize float32) Player {
-	frameCount := 5
-
 	spriteSheet := rl.LoadImage(spriteSheetPath)
 	defer rl.UnloadImage(spriteSheet)
 
 	return Player{
 		animation: LinearAnimation{
-			duration:    float32(1.),
-			elapsedTime: float32(0.),
-			frames:      uint32(frameCount),
+			timer:  NewTimer(1.0, true),
+			frames: 5,
 		},
 		isMoving:     false,
 		isJumping:    false,

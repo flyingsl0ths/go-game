@@ -3,23 +3,25 @@ package game
 import "math"
 
 type LinearAnimation struct {
-	duration    float32
-	elapsedTime float32
-	frames      uint32
+	timer  Timer
+	frames uint32
+}
+
+func NewAnimation(duration float32, loops bool, frames uint32) LinearAnimation {
+	return LinearAnimation{
+		timer:  NewTimer(duration, loops),
+		frames: frames,
+	}
 }
 
 func UpdateAnimation(animation LinearAnimation, dt float32) LinearAnimation {
 	anim := animation
 
-	anim.elapsedTime += dt
-
-	if anim.elapsedTime >= anim.duration {
-		anim.elapsedTime -= anim.duration
-	}
+	anim.timer = Tick(anim.timer, dt)
 
 	return anim
 }
 
 func NextFrame(animation LinearAnimation) uint32 {
-	return uint32(math.Floor(float64(animation.elapsedTime) / float64(animation.duration) * float64(animation.frames)))
+	return uint32(math.Floor(float64(animation.timer.tick) / float64(animation.timer.duration) * float64(animation.frames)))
 }
