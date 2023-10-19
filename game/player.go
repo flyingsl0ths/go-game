@@ -4,15 +4,17 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Player struct {
 	animation    LinearAnimation
-	isMoving     bool
+	stunTimer    Timer
 	isJumping    bool
+	isMoving     bool
 	originalSize float32
+	physics      Physics[rl.Vector2]
 	playerSize   float32
 	position     rl.Vector2
 	texture      rl.Texture2D
 	textureBox   rl.Rectangle
 	textureSize  float32
-	physics      Physics[rl.Vector2]
+	wasHit       bool
 }
 
 func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize float32) Player {
@@ -24,6 +26,7 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize floa
 			timer:  NewTimer(1.0, true),
 			frames: 5,
 		},
+		stunTimer:    stunTimer(),
 		isMoving:     false,
 		isJumping:    false,
 		originalSize: 32.,
@@ -34,11 +37,20 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize floa
 		textureSize:  playerSize,
 		physics: Physics[rl.Vector2]{
 			gravity: -500, ground: startPosition.Y, jumpHeight: -300, velocity: rl.NewVector2(200., 0.)},
+		wasHit: false,
 	}
 }
 
+func stunTimer() Timer {
+	return NewTimer(0.75, false)
+}
+
+func PlayerBoundingBox(player *Player) rl.Rectangle {
+	return rl.NewRectangle(player.position.X, player.position.Y, player.textureSize, player.textureSize)
+}
+
 func UpdatePlayer(player Player, delta float32) Player {
-	return handlePhysics(handleMovement(handleSpriteAnimation(player, delta), delta), delta)
+	return handlePhysics(handleCollision(handleSpriteChange(player, delta), delta), delta)
 }
 
 func DrawPlayer(player Player) {
@@ -48,12 +60,69 @@ func DrawPlayer(player Player) {
 		rl.NewVector2(player.textureSize/2., player.textureSize/2.), 0., rl.White)
 }
 
+func handleSpriteChange(player Player, delta float32) Player {
+	player_ := player
+
+	if player_.wasHit {
+		player_.textureBox.X = player_.originalSize * 7.
+		return player_
+	}
+
+	if player_.isJumping {
+		player_.textureBox.X = player_.originalSize * 6.
+		return player_
+	}
+
+	if !player_.isMoving {
+		player_.textureBox.X = player_.originalSize * 5.
+		return player_
+	}
+
+	return handleSpriteAnimation(player_, delta)
+}
+
+func handleSpriteAnimation(player Player, delta float32) Player {
+	player_ := player
+
+	player_.animation = UpdateAnimation(player_.animation, delta)
+
+	currentFrame := NextFrame(player_.animation)
+
+	player_.textureBox.X = float32(currentFrame) * player_.originalSize
+
+	return player_
+}
+
+func handleCollision(player Player, delta float32) Player {
+	player_ := player
+
+	if player_.wasHit {
+		return onTick(player_, delta)
+	} else {
+		return handleMovement(player_, delta)
+	}
+}
+
+func onTick(player Player, delta float32) Player {
+	player_ := player
+
+	player_.stunTimer = Tick(player_.stunTimer, delta)
+
+	if player_.stunTimer.finished {
+		player_.stunTimer = stunTimer()
+		player_.wasHit = false
+	}
+
+	return player_
+}
+
 func handleMovement(player Player, delta float32) Player {
 	player_ := player
 
 	player_.isMoving = false
 
 	difference := float32(0.)
+
 	movement := player_.physics.velocity.X * delta
 
 	if rl.IsKeyDown(rl.KeyLeft) || rl.IsKeyDown(rl.KeyA) {
@@ -97,28 +166,6 @@ func handlePhysics(player Player, delta float32) Player {
 		player_.position.Y = player_.physics.ground
 		player_.isJumping = false
 	}
-
-	return player_
-}
-
-func handleSpriteAnimation(player Player, delta float32) Player {
-	player_ := player
-
-	if player_.isJumping {
-		player_.textureBox.X = player_.originalSize * 6.
-		return player_
-	}
-
-	if !player_.isMoving {
-		player_.textureBox.X = player_.originalSize * 5.
-		return player_
-	}
-
-	player_.animation = UpdateAnimation(player_.animation, delta)
-
-	currentFrame := NextFrame(player_.animation)
-
-	player_.textureBox.X = float32(currentFrame) * player_.originalSize
 
 	return player_
 }

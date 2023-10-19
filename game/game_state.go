@@ -81,15 +81,48 @@ func onGameState(game *GameState, delta float32) {
 func updateGameState(game *GameState, delta float32) {
 	game.player = UpdatePlayer(game.player, delta)
 
-	mover := func(item *Item, delta float32) {
-		item.position.Y += item.gravity * delta
-		item.rotation += float32(EaseOutCirc(0.2))
-		// item.collided = rl.CheckCollisionRecs(game.player.textureBox)
+	updateSpawners(game, delta)
+}
+
+func updateSpawners(game *GameState, delta float32) {
+	collectablesMover := func(item *Item, delta float32) {
+		spawnMover(game, item, delta)
+
+		if item.collided && !game.player.wasHit {
+			game.playerPoints += uint32(item.itemID)
+		}
 	}
 
-	UpdateSpawner(&game.objects, mover, delta)
+	objectMover := func(item *Item, delta float32) {
+		spawnMover(game, item, delta)
 
-	UpdateSpawner(&game.collectables, mover, delta)
+		if item.collided {
+			if game.playerPoints > 0 {
+				game.playerPoints -= uint32(item.itemID)
+			}
+
+			game.player.wasHit = true
+		}
+	}
+
+	UpdateSpawner(&game.objects, objectMover, delta)
+
+	UpdateSpawner(&game.collectables, collectablesMover, delta)
+}
+
+func spawnMover(game *GameState, item *Item, delta float32) {
+	const ITEM_WIDTH float32 = 16.0
+	const ITEM_HEIGHT float32 = 15.0
+
+	item.position.Y += item.gravity * delta
+
+	item.rotation += EaseOutCirc(0.2)
+
+	rl.CheckCollisionRecs(rl.NewRectangle(item.position.X, item.position.Y, ITEM_WIDTH, ITEM_HEIGHT),
+		PlayerBoundingBox(&game.player))
+
+	item.collided = rl.CheckCollisionRecs(rl.NewRectangle(item.position.X, item.position.Y, ITEM_WIDTH, ITEM_HEIGHT),
+		PlayerBoundingBox(&game.player))
 }
 
 func drawGameState(game *GameState) {
