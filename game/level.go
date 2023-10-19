@@ -2,12 +2,12 @@ package game
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
-func DrawHUD(textureAtlas *TextureAtlas, windowDimens WindowDimens, lives Lives, points Points) {
+func DrawHUD(textureAtlas *TextureAtlas, windowDimens WindowDimens, lives uint32, points uint32) {
 	drawPlayerIcons(textureAtlas, lives)
 	drawCollectableIcons(textureAtlas, windowDimens, points)
 }
 
-func drawPlayerIcons(textureAtlas *TextureAtlas, lives Lives) {
+func drawPlayerIcons(textureAtlas *TextureAtlas, lives uint32) {
 	const PADDING float32 = 5.
 	lifeIconPos := rl.NewVector2(PADDING, PADDING)
 
@@ -45,7 +45,7 @@ func drawPlayerIcons(textureAtlas *TextureAtlas, lives Lives) {
 		rl.NewVector2(0., 0.), 0., rl.White)
 }
 
-func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens, points Points) {
+func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens, points uint32) {
 	const PADDING float32 = 5.
 
 	pointsIcon := textureAtlas.hud[1]

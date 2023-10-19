@@ -20,9 +20,9 @@ type GameState struct {
 	collectables Spawner
 	highScores   []Score
 	objects      Spawner
-	playerLives  Lives
+	playerLives  uint32
 	player       Player
-	playerPoints Points
+	playerPoints uint32
 	powerUps     Spawner
 	spriteSize   float32
 	state        State
@@ -42,9 +42,9 @@ func NewGameState(windowDimens [2]float32, spriteSize float32) GameState {
 		collectables: NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
 		highScores:   []Score{},
 		objects:      NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
-		playerLives:  [2]rune{'0', '1'},
+		playerLives:  1,
 		player:       NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.),
-		playerPoints: [9]rune{'0', '0', '0', '0', '0', '0', '0', '0', '0'},
+		playerPoints: 0,
 		spriteSize:   spriteSize,
 		state:        State(GAME),
 		textures:     textures,

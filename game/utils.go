@@ -10,13 +10,6 @@ type WindowDimens struct {
 	height float32
 }
 
-type Lives [2]rune
-type Points [9]rune
-
-func removeFrom[T any](xs []T, i int) []T {
-	return append(xs[:i], xs[i+1:]...)
-}
-
 func RandRange(min int, max int) int {
 	if min > max {
 		return 0
@@ -25,6 +18,6 @@ func RandRange(min int, max int) int {
 	}
 }
 
-func EaseOutCirc(x float64) float64 {
-	return math.Sqrt(1.0 - math.Pow(x-1.0, 2.0))
+func EaseOutCirc(x float32) float32 {
+	return float32(math.Sqrt(1.0 - math.Pow(float64(x)-1.0, 2.0)))
 }
