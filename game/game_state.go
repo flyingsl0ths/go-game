@@ -30,8 +30,10 @@ type GameState struct {
 	windowDimens WindowDimens
 }
 
-func NewGameState(windowDimens [2]float32, spriteSize float32) GameState {
+func NewGameState(windowDimens [2]float32) GameState {
 	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", "./assets/hud.png", windowDimens)
+
+	const spriteSize float32 = 64.
 
 	spawnBoundaries := Boundaries{
 		bottom: windowDimens[1]/2. + spriteSize*2.0,

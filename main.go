@@ -7,7 +7,6 @@ import (
 
 func main() {
 	windowDimens := [2]float32{1280, 720}
-	spriteSize := float32(64.)
 
 	rl.InitWindow(int32(windowDimens[0]), int32(windowDimens[1]), "Catcher")
 
@@ -15,7 +14,7 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	game := gm.NewGameState(windowDimens, spriteSize)
+	game := gm.NewGameState(windowDimens)
 
 	for !rl.WindowShouldClose() {
 		gm.RunGame(&game, rl.GetFrameTime())
