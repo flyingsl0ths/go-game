@@ -57,19 +57,22 @@ func makeHUDRectangles() []rl.Rectangle {
 	rs[COLLECTABLE_ICON] = rl.NewRectangle(16., 0, 25., 11.)
 	rs[MULTIPLIER_ICON] = rl.NewRectangle(41., 3., 8., 8.)
 
-	const NUMS = 12
+	const REMAINING = 10
+	const HALFWAY = REMAINING / 2
 	const NUMS_STRIDE = 8
 	const NUMS_WIDTH = 7.
 	const NUMS_COL = 5
 
 	j := 3
-	for i := 0; i < NUMS; i++ {
+	for i := 0; i <= REMAINING; i++ {
 		var y float32 = 11.
-		if i == NUMS_COL {
+
+		if i > HALFWAY {
 			y += NUMS_STRIDE
 		}
 
 		rs[j] = rl.NewRectangle(float32(i)*NUMS_STRIDE, y, NUMS_WIDTH, NUMS_WIDTH)
+
 		j += 1
 	}
 
