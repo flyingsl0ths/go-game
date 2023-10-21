@@ -6,12 +6,12 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func DrawHUD(textureAtlas *TextureAtlas, windowDimens WindowDimens, lives uint32, points uint32) {
+func DrawHUD(textureAtlas TextureAtlas, windowDimens WindowDimens, lives uint32, points uint32) {
 	drawPlayerIcons(textureAtlas, lives)
 	drawCollectableIcons(textureAtlas, windowDimens, points)
 }
 
-func drawPlayerIcons(textureAtlas *TextureAtlas, lives uint32) {
+func drawPlayerIcons(textureAtlas TextureAtlas, lives uint32) {
 	const PADDING float32 = 5.
 	lifeIconPos := rl.NewVector2(PADDING, PADDING)
 
@@ -61,7 +61,7 @@ func drawPlayerIcons(textureAtlas *TextureAtlas, lives uint32) {
 		rl.NewVector2(0., 0.), 0., rl.White)
 }
 
-func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens, points uint32) {
+func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, points uint32) {
 	const IMAGE_PADDING float32 = 6.
 
 	pointsIcon := textureAtlas.hud[1]
@@ -129,7 +129,7 @@ func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens,
 	}
 }
 
-func DrawPlatforms(textureAtlas *TextureAtlas, windowDimens WindowDimens, textureSize float32) {
+func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, textureSize float32) {
 	startPosition := [2]float32{windowDimens.width / 2., windowDimens.height/2. + textureSize*2}
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.level,

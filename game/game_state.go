@@ -138,15 +138,13 @@ func spawnMover(game *GameState, item *Item, delta float32) {
 func drawGameState(game *GameState) {
 	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
 
-	textures := &game.textures
-
-	DrawHUD(textures, game.windowDimens, game.playerLives, game.playerPoints)
+	DrawHUD(game.textures, game.windowDimens, game.playerLives, game.playerPoints)
 
 	drawSpawnedObjects(game)
 
 	DrawPlayer(game.player)
 
-	DrawPlatforms(textures, game.windowDimens, game.spriteSize)
+	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize)
 }
 
 func drawSpawnedObjects(game *GameState) {
