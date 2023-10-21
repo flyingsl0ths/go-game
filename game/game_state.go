@@ -7,6 +7,7 @@ const (
 	PAUSED      uint32 = 1
 	GAME        uint32 = 2
 	HIGH_SCORES uint32 = 3
+	MAX_POINTS  uint32 = 999999999
 )
 
 type State uint32
@@ -91,7 +92,14 @@ func updateSpawners(game *GameState, delta float32) {
 		spawnMover(game, item, delta)
 
 		if item.collided && !game.player.wasHit {
-			game.playerPoints += uint32(item.itemID)
+			if game.playerPoints < MAX_POINTS {
+				total := game.playerPoints + uint32(item.itemID)
+				if total > MAX_POINTS {
+					total = MAX_POINTS
+				}
+				game.playerPoints = total
+
+			}
 		}
 	}
 

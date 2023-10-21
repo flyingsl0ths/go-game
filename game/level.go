@@ -1,6 +1,10 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"strconv"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 func DrawHUD(textureAtlas *TextureAtlas, windowDimens WindowDimens, lives uint32, points uint32) {
 	drawPlayerIcons(textureAtlas, lives)
@@ -32,21 +36,33 @@ func drawPlayerIcons(textureAtlas *TextureAtlas, lives uint32) {
 	numberIconSize := textureAtlas.hud[3].Width * 2
 	lifeIconPos.Y += numberIconSize/2. + PADDING/2.
 
+	playerLives := strconv.FormatUint(uint64(lives), 10)
+
+	firstNumOffset := 0
+	secondNumOffset := 0
+
+	if lives >= 10 {
+		firstNumOffset = int(playerLives[0] - '0')
+		secondNumOffset = int(playerLives[1] - '0')
+	} else {
+		secondNumOffset = int(playerLives[0] - '0')
+	}
+
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
-		textureAtlas.hud[3],
+		textureAtlas.hud[3+firstNumOffset],
 		rl.NewRectangle(lifeIconPos.X, lifeIconPos.Y, numberIconSize, numberIconSize),
 		rl.NewVector2(0., 0.), 0., rl.White)
 
 	lifeIconPos.X += numberIconSize + PADDING
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
-		textureAtlas.hud[3],
+		textureAtlas.hud[3+secondNumOffset],
 		rl.NewRectangle(lifeIconPos.X, lifeIconPos.Y, numberIconSize, numberIconSize),
 		rl.NewVector2(0., 0.), 0., rl.White)
 }
 
 func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens, points uint32) {
-	const PADDING float32 = 5.
+	const IMAGE_PADDING float32 = 6.
 
 	pointsIcon := textureAtlas.hud[1]
 	multiplierIcon := textureAtlas.hud[2]
@@ -57,16 +73,16 @@ func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens,
 
 	offset := pointsIconSize + multiplierIconSize + (textureAtlas.hud[3].Width * 2 * 10)
 
-	pointsIconPos := rl.NewVector2(windowWidth-offset, PADDING)
+	pointsIconPos := rl.NewVector2(windowWidth-offset, IMAGE_PADDING)
 
-	yOffset := pointsIconPos.Y + PADDING
+	yOffset := pointsIconPos.Y + IMAGE_PADDING
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		pointsIcon,
 		rl.NewRectangle(pointsIconPos.X, pointsIconPos.Y, pointsIcon.Width*2., pointsIcon.Height*2),
 		rl.NewVector2(0., 0.), 0., rl.White)
 
-	pointsIconPos.X += pointsIconSize + PADDING
+	pointsIconPos.X += pointsIconSize + IMAGE_PADDING
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		multiplierIcon,
@@ -76,16 +92,40 @@ func drawCollectableIcons(textureAtlas *TextureAtlas, windowDimens WindowDimens,
 	pointsIconPos.X += multiplierIconSize
 
 	const MAX_POINTS = 9
+	const ZERO_IMAGE_INDEX = 3
 
-	for i := 0; i < MAX_POINTS; i++ {
-		numberIcon := textureAtlas.hud[3]
-		numberIconSize := numberIcon.Width * 2
+	playerPoints := strconv.FormatUint(uint64(points), 10)
+
+	numberIconSize := textureAtlas.hud[ZERO_IMAGE_INDEX].Width * 2
+	padding := MAX_POINTS - len(playerPoints)
+	playerPointsStride := 0
+
+	for i := 0; i < padding; i++ {
+		numberIcon := textureAtlas.hud[ZERO_IMAGE_INDEX]
 
 		rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 			numberIcon,
-			rl.NewRectangle(pointsIconPos.X+(numberIconSize*float32(i))+PADDING,
+			rl.NewRectangle(pointsIconPos.X+(numberIconSize*float32(i))+IMAGE_PADDING,
 				yOffset, numberIconSize, numberIconSize),
 			rl.NewVector2(0., 0.), 0., rl.White)
+
+		playerPointsStride = i
+	}
+
+	if padding > 0 {
+		playerPointsStride += 1
+	}
+
+	for _, c := range playerPoints {
+		numberIcon := textureAtlas.hud[ZERO_IMAGE_INDEX+int(c-'0')]
+
+		rl.DrawTexturePro(textureAtlas.textureSheets.hud,
+			numberIcon,
+			rl.NewRectangle(pointsIconPos.X+(numberIconSize*float32(playerPointsStride))+IMAGE_PADDING,
+				yOffset, numberIconSize, numberIconSize),
+			rl.NewVector2(0., 0.), 0., rl.White)
+
+		playerPointsStride += 1
 	}
 }
 
