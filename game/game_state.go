@@ -6,8 +6,13 @@ const (
 	TITLE       uint32 = 0
 	PAUSED      uint32 = 1
 	GAME        uint32 = 2
-	HIGH_SCORES uint32 = 3
-	MAX_POINTS  uint32 = 999999999
+	GAME_OVER   uint32 = 3
+	HIGH_SCORES uint32 = 4
+
+	GAME_OVER_FONT_SIZE float32 = 100.
+	ONE_UP              uint32  = 1000
+	PLAYER_HIT_MAX      uint32  = 5
+	MAX_POINTS          uint32  = 999999999
 )
 
 type State uint32
@@ -18,17 +23,20 @@ type Score struct {
 }
 
 type GameState struct {
-	collectables Spawner
-	highScores   []Score
-	objects      Spawner
-	playerLives  uint32
-	player       Player
-	playerPoints uint32
-	powerUps     Spawner
-	spriteSize   float32
-	state        State
-	textures     TextureAtlas
-	windowDimens WindowDimens
+	collectables               Spawner
+	gameOverTextAnimationTimer float32
+	gameOverTextPos            rl.Vector2
+	highScores                 []Score
+	objects                    Spawner
+	player                     Player
+	playerHitCounter           uint32
+	playerLives                uint32
+	playerOneUpCounter         uint32
+	playerPoints               uint32
+	spriteSize                 float32
+	state                      State
+	textures                   TextureAtlas
+	windowDimens               WindowDimens
 }
 
 func NewGameState(windowDimens [2]float32) GameState {
@@ -42,16 +50,20 @@ func NewGameState(windowDimens [2]float32) GameState {
 		width:  windowDimens[0]}
 
 	return GameState{
-		collectables: NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
-		highScores:   []Score{},
-		objects:      NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
-		playerLives:  1,
-		player:       NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.),
-		playerPoints: 0,
-		spriteSize:   spriteSize,
-		state:        State(GAME),
-		textures:     textures,
-		windowDimens: WindowDimens{width: windowDimens[0], height: windowDimens[1]},
+		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
+		gameOverTextAnimationTimer: 0.,
+		gameOverTextPos:            rl.NewVector2((windowDimens[0]/2.)-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
+		highScores:                 []Score{},
+		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
+		player:                     NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.),
+		playerHitCounter:           0,
+		playerLives:                1,
+		playerOneUpCounter:         0,
+		playerPoints:               0,
+		spriteSize:                 spriteSize,
+		state:                      State(GAME),
+		textures:                   textures,
+		windowDimens:               WindowDimens{width: windowDimens[0], height: windowDimens[1]},
 	}
 }
 
@@ -67,6 +79,9 @@ func RunGame(game *GameState, delta float32) {
 		break
 	case State(GAME):
 		onGameState(game, delta)
+		break
+	case State(GAME_OVER):
+		onGameOver(game, delta)
 		break
 	case State(HIGH_SCORES):
 		break
@@ -88,31 +103,56 @@ func updateGameState(game *GameState, delta float32) {
 }
 
 func updateSpawners(game *GameState, delta float32) {
-	collectablesMover := func(item *Item, delta float32) {
+	collectablesMover := func(item *Item, delta float32) bool {
 		spawnMover(game, item, delta)
 
 		if item.collided && !game.player.wasHit {
 			if game.playerPoints < MAX_POINTS {
 				total := game.playerPoints + uint32(item.itemID)
+
 				if total > MAX_POINTS {
 					total = MAX_POINTS
 				}
+
 				game.playerPoints = total
+				game.playerOneUpCounter = total
+
+				if game.playerOneUpCounter >= ONE_UP {
+					game.playerOneUpCounter = 0
+					game.playerLives += 1
+				}
 
 			}
 		}
+
+		return true
 	}
 
-	objectMover := func(item *Item, delta float32) {
+	objectMover := func(item *Item, delta float32) bool {
 		spawnMover(game, item, delta)
 
-		if item.collided {
-			if game.playerPoints > 0 {
-				game.playerPoints -= uint32(item.itemID)
-			}
-
-			game.player.wasHit = true
+		if !item.collided {
+			return true
 		}
+
+		if game.playerPoints > 0 {
+			itemDamage := uint32(item.itemID)
+			game.playerPoints -= itemDamage
+			game.playerOneUpCounter -= itemDamage
+		}
+
+		game.playerHitCounter = (game.playerHitCounter + 1) % PLAYER_HIT_MAX
+
+		if game.playerHitCounter == 0 {
+			game.playerLives -= 1
+			if game.playerLives == 0 {
+				game.state = State(GAME_OVER)
+			}
+			return false
+		}
+
+		game.player.wasHit = true
+		return true
 	}
 
 	UpdateSpawner(&game.objects, objectMover, delta)
@@ -126,10 +166,7 @@ func spawnMover(game *GameState, item *Item, delta float32) {
 
 	item.position.Y += item.gravity * delta
 
-	item.rotation += EaseOutCirc(0.2)
-
-	rl.CheckCollisionRecs(rl.NewRectangle(item.position.X, item.position.Y, ITEM_WIDTH, ITEM_HEIGHT),
-		PlayerBoundingBox(&game.player))
+	item.rotation += 1.5
 
 	item.collided = rl.CheckCollisionRecs(rl.NewRectangle(item.position.X, item.position.Y, ITEM_WIDTH, ITEM_HEIGHT),
 		PlayerBoundingBox(&game.player))
@@ -162,4 +199,34 @@ func drawSpawnedObjects(game *GameState) {
 			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
 	}
 
+}
+
+func onGameOver(game *GameState, delta float32) {
+	updateGameOverState(game, delta)
+
+	drawGameOverState(game, delta)
+}
+
+func updateGameOverState(game *GameState, delta float32) {
+	game.gameOverTextAnimationTimer += 0.0039
+
+	game.gameOverTextPos.Y += 10. * ElasticEaseOut(game.gameOverTextAnimationTimer, 0., 1., 0.5)
+
+	if game.gameOverTextAnimationTimer >= 0.75 {
+		game.state = State(HIGH_SCORES)
+	}
+}
+
+func drawGameOverState(game *GameState, delta float32) {
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
+
+	DrawHUD(game.textures, game.windowDimens, game.playerLives, game.playerPoints)
+
+	drawSpawnedObjects(game)
+
+	rl.DrawTextEx(rl.GetFontDefault(), "GAME OVER", game.gameOverTextPos, GAME_OVER_FONT_SIZE, 0., rl.Red)
+
+	DrawPlayer(game.player)
+
+	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize)
 }

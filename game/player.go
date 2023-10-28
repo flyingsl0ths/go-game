@@ -3,7 +3,7 @@ package game
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Player struct {
-	animation    LinearAnimation
+	animation    LinearFrameAnimation
 	stunTimer    Timer
 	isJumping    bool
 	isMoving     bool
@@ -22,7 +22,7 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize floa
 	defer rl.UnloadImage(spriteSheet)
 
 	return Player{
-		animation: LinearAnimation{
+		animation: LinearFrameAnimation{
 			timer:  NewTimer(1.0, true),
 			frames: 5,
 		},
