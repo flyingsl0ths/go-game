@@ -129,48 +129,28 @@ func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, 
 	}
 }
 
-func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, textureSize float32) {
-	startPosition := [2]float32{windowDimens.width / 2., windowDimens.height/2. + textureSize*2}
+func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, textureSize float32, hitboxes [26]HitBox) {
+	const AT_EDGE = 2
+	const REGULAR_TILE = 3
 
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[0],
-		rl.NewRectangle(0., startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
-
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[1],
-		rl.NewRectangle(textureSize, startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
-
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[2],
-		rl.NewRectangle(textureSize*2, startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
-
-	const currentlyDrawnAtEdge = 3
-	toDraw := int(windowDimens.width/textureSize) - currentlyDrawnAtEdge
-
-	for i := 3; i < toDraw; i++ {
-		rl.DrawTexturePro(textureAtlas.textureSheets.level,
-			textureAtlas.platforms[3],
-			rl.NewRectangle(textureSize*float32(i), startPosition[1], textureSize, textureSize),
-			rl.NewVector2(0., 0.), 0., rl.White)
-	}
-
+	startPosition := windowDimens.height/2. + textureSize*2
+	toDraw := int(windowDimens.width / textureSize)
+	remaining := toDraw - (AT_EDGE + 1)
 	total := len(textureAtlas.platforms)
 
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[total-3],
-		rl.NewRectangle(windowDimens.width-(textureSize*3), startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+	for i := 0; i < toDraw; i++ {
+		tile := REGULAR_TILE
 
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[total-2],
-		rl.NewRectangle(windowDimens.width-(textureSize*2), startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		if i <= AT_EDGE {
+			tile = i
+		} else if i >= remaining {
+			tile = total - (toDraw % i)
+			println(tile)
+		}
 
-	rl.DrawTexturePro(textureAtlas.textureSheets.level,
-		textureAtlas.platforms[total-1],
-		rl.NewRectangle(windowDimens.width-textureSize, startPosition[1], textureSize, textureSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.DrawTexturePro(textureAtlas.textureSheets.level,
+			textureAtlas.platforms[tile],
+			rl.NewRectangle(textureSize*float32(i), startPosition, textureSize, textureSize),
+			rl.NewVector2(0., 0.), 0., rl.White)
+	}
 }
