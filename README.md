@@ -1,2 +1,3 @@
 # go-game
-A simple clicker game made using go + SFML
+
+A simple "catcher game" made using go + raylib
