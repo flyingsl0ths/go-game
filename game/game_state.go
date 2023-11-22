@@ -9,9 +9,10 @@ const (
 	GAME_OVER   uint32 = 3
 	HIGH_SCORES uint32 = 4
 
+	TOTAL_PLATFORMS             = 1280 / 64
 	GAME_OVER_FONT_SIZE float32 = 100.
 	ONE_UP              uint32  = 1000
-	PLAYER_HIT_MAX      uint32  = 5
+	PLAYER_HIT_MAX      uint32  = 10
 	MAX_POINTS          uint32  = 999999999
 )
 
@@ -24,10 +25,12 @@ type Score struct {
 
 type GameState struct {
 	collectables               Spawner
+	font                       rl.Font
 	gameOverTextAnimationTimer float32
 	gameOverTextPos            rl.Vector2
 	highScores                 []Score
 	objects                    Spawner
+	platformHitBoxes           [TOTAL_PLATFORMS]HitBox
 	player                     Player
 	playerHitCounter           uint32
 	playerLives                uint32
@@ -49,13 +52,17 @@ func NewGameState(windowDimens [2]float32) GameState {
 		top:    0.0 - textures.food[0].Width,
 		width:  windowDimens[0]}
 
+	gameFont := rl.LoadFont("./assets/main.ttf")
+
 	return GameState{
 		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
+		font:                       gameFont,
 		gameOverTextAnimationTimer: 0.,
 		gameOverTextPos:            rl.NewVector2((windowDimens[0]/2.)-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
 		highScores:                 []Score{},
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
-		player:                     NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), spriteSize+32.),
+		platformHitBoxes:           makePlatforms(windowDimens[1]/2.+spriteSize*2., spriteSize),
+		player:                     NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
 		playerHitCounter:           0,
 		playerLives:                1,
 		playerOneUpCounter:         0,
@@ -65,6 +72,22 @@ func NewGameState(windowDimens [2]float32) GameState {
 		textures:                   textures,
 		windowDimens:               WindowDimens{width: windowDimens[0], height: windowDimens[1]},
 	}
+}
+
+func makePlatforms(yPos float32, platformSize float32) [TOTAL_PLATFORMS]HitBox {
+	// WINDOW WIDTH / platformSize
+	total := int(1280 / platformSize)
+
+	rs := [TOTAL_PLATFORMS]HitBox{}
+
+	for i := 0; i < total; i++ {
+		rs[i] = HitBox{
+			box:           rl.NewRectangle(platformSize*float32(i), yPos, platformSize, platformSize),
+			damageCounter: NewDamageCounter(25.),
+		}
+	}
+
+	return rs
 }
 
 func RunGame(game *GameState, delta float32) {
@@ -97,9 +120,41 @@ func onGameState(game *GameState, delta float32) {
 }
 
 func updateGameState(game *GameState, delta float32) {
-	game.player = UpdatePlayer(game.player, delta)
+	updatePlayer(game, delta)
 
 	updateSpawners(game, delta)
+
+	updatePlatformHitBoxes(game)
+}
+
+func updatePlayer(game *GameState, delta float32) {
+	game.player = UpdatePlayer(game.player, delta)
+
+	if game.player.position.Y > game.windowDimens.height+game.spriteSize+32. {
+		game.state = State(GAME_OVER)
+		return
+	}
+
+	if game.player.halt {
+		return
+	}
+
+	platformIndex := CellFrom(game.player.position.X, game.spriteSize, TOTAL_PLATFORMS)
+
+	platform := game.platformHitBoxes[platformIndex]
+
+	if !game.player.isJumping && MaxDamage(platform.damageCounter) {
+		game.player.fell = true
+
+		platform = game.platformHitBoxes[(platformIndex+1)%TOTAL_PLATFORMS]
+
+		side := CollideWithSides(PlayerBoundingBox(&game.player), platform.box)
+
+		if side == "bottom" {
+			game.player.halt = true
+		}
+	}
+
 }
 
 func updateSpawners(game *GameState, delta float32) {
@@ -172,6 +227,27 @@ func spawnMover(game *GameState, item *Item, delta float32) {
 		PlayerBoundingBox(&game.player))
 }
 
+func updatePlatformHitBoxes(game *GameState) {
+	const ITEM_WIDTH float32 = 16.0
+	const ITEM_HEIGHT float32 = 15.0
+
+	calculateDamage := func(item Item, game *GameState) {
+		platformIndex := CellFrom(item.position.X, game.spriteSize, TOTAL_PLATFORMS)
+
+		platform := game.platformHitBoxes[platformIndex]
+
+		if !item.collided && rl.CheckCollisionRecs(rl.NewRectangle(item.position.X, item.position.Y, ITEM_WIDTH, ITEM_HEIGHT), platform.box) {
+			platform.damageCounter = DamageCalc(platform.damageCounter, 0.5)
+
+			game.platformHitBoxes[platformIndex] = platform
+		}
+	}
+
+	for _, item := range game.objects.items {
+		calculateDamage(item, game)
+	}
+}
+
 func drawGameState(game *GameState) {
 	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
 
@@ -181,7 +257,7 @@ func drawGameState(game *GameState) {
 
 	DrawPlayer(game.player)
 
-	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize)
+	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize, game.platformHitBoxes)
 }
 
 func drawSpawnedObjects(game *GameState) {
@@ -224,9 +300,9 @@ func drawGameOverState(game *GameState, delta float32) {
 
 	drawSpawnedObjects(game)
 
-	rl.DrawTextEx(rl.GetFontDefault(), "GAME OVER", game.gameOverTextPos, GAME_OVER_FONT_SIZE, 0., rl.Red)
+	rl.DrawTextEx(game.font, "GAME OVER", game.gameOverTextPos, GAME_OVER_FONT_SIZE, 0., rl.Red)
 
 	DrawPlayer(game.player)
 
-	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize)
+	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize, game.platformHitBoxes)
 }

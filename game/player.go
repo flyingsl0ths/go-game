@@ -4,28 +4,35 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Player struct {
 	animation    LinearFrameAnimation
-	stunTimer    Timer
+	fell         bool
+	halt         bool
 	isJumping    bool
 	isMoving     bool
 	originalSize float32
 	physics      Physics[rl.Vector2]
 	playerSize   float32
 	position     rl.Vector2
+	stunTimer    Timer
 	texture      rl.Texture2D
 	textureBox   rl.Rectangle
 	textureSize  float32
 	wasHit       bool
 }
 
-func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize float32) Player {
+func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, bottom float32, playerSize float32) Player {
 	spriteSheet := rl.LoadImage(spriteSheetPath)
+
 	defer rl.UnloadImage(spriteSheet)
+
+	jumpHeight := float32(300.0)
 
 	return Player{
 		animation: LinearFrameAnimation{
 			timer:  NewTimer(1.0, true),
 			frames: 5,
 		},
+		fell:         false,
+		halt:         false,
 		stunTimer:    stunTimer(),
 		isMoving:     false,
 		isJumping:    false,
@@ -36,7 +43,11 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, playerSize floa
 		textureBox:   rl.NewRectangle(0, 0, 32., 32.),
 		textureSize:  playerSize,
 		physics: Physics[rl.Vector2]{
-			gravity: -500, ground: startPosition.Y, jumpHeight: -300, velocity: rl.NewVector2(200., 0.)},
+			bottom:     bottom,
+			gravity:    -500,
+			ground:     startPosition.Y,
+			jumpHeight: -jumpHeight,
+			velocity:   rl.NewVector2(200., 0.)},
 		wasHit: false,
 	}
 }
@@ -62,6 +73,11 @@ func DrawPlayer(player Player) {
 
 func handleSpriteChange(player Player, delta float32) Player {
 	player_ := player
+
+	if player_.fell {
+		player_.textureBox.X = player_.originalSize * 8.
+		return player_
+	}
 
 	if player_.wasHit {
 		player_.textureBox.X = player_.originalSize * 7.
@@ -117,6 +133,10 @@ func onTick(player Player, delta float32) Player {
 }
 
 func handleMovement(player Player, delta float32) Player {
+	if player.halt {
+		return player
+	}
+
 	player_ := player
 
 	player_.isMoving = false
@@ -150,11 +170,16 @@ func handleMovement(player Player, delta float32) Player {
 }
 
 func handlePhysics(player Player, delta float32) Player {
-	if !player.isJumping {
-		return player
+	player_ := player
+
+	if player_.fell {
+		player_.position.Y += -player_.physics.jumpHeight * delta
+		return player_
 	}
 
-	player_ := player
+	if !player.isJumping {
+		return player_
+	}
 
 	if player_.physics.velocity.Y != 0. {
 		player_.position.Y += player_.physics.velocity.Y * delta

@@ -129,12 +129,12 @@ func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, 
 	}
 }
 
-func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, textureSize float32, hitboxes [26]HitBox) {
+func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, textureSize float32, hitBoxes [20]HitBox) {
 	const AT_EDGE = 2
 	const REGULAR_TILE = 3
 
 	startPosition := windowDimens.height/2. + textureSize*2
-	toDraw := int(windowDimens.width / textureSize)
+	toDraw := len(hitBoxes)
 	remaining := toDraw - (AT_EDGE + 1)
 	total := len(textureAtlas.platforms)
 
@@ -145,12 +145,29 @@ func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, texture
 			tile = i
 		} else if i >= remaining {
 			tile = total - (toDraw % i)
-			println(tile)
 		}
 
-		rl.DrawTexturePro(textureAtlas.textureSheets.level,
-			textureAtlas.platforms[tile],
-			rl.NewRectangle(textureSize*float32(i), startPosition, textureSize, textureSize),
-			rl.NewVector2(0., 0.), 0., rl.White)
+		platformRect := rl.NewRectangle(textureSize*float32(i), startPosition, textureSize, textureSize)
+
+		if !MaxDamage(hitBoxes[i].damageCounter) {
+			rl.DrawTexturePro(textureAtlas.textureSheets.level,
+				textureAtlas.platforms[tile],
+				platformRect,
+				rl.NewVector2(0., 0.), 0., rl.White)
+		} else {
+			continue
+		}
+
+		if hitBoxes[i].damageCounter.percentage >= 75. {
+			rl.DrawTexturePro(textureAtlas.textureSheets.level,
+				textureAtlas.overlays[1],
+				platformRect,
+				rl.NewVector2(0., 0.), 0., rl.White)
+		} else if hitBoxes[i].damageCounter.percentage >= 45. {
+			rl.DrawTexturePro(textureAtlas.textureSheets.level,
+				textureAtlas.overlays[0],
+				platformRect,
+				rl.NewVector2(0., 0.), 0., rl.White)
+		}
 	}
 }
