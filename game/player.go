@@ -10,7 +10,6 @@ type Player struct {
 	isMoving     bool
 	originalSize float32
 	physics      Physics[rl.Vector2]
-	playerSize   float32
 	position     rl.Vector2
 	stunTimer    Timer
 	texture      rl.Texture2D
@@ -37,7 +36,6 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, bottom float32,
 		isMoving:     false,
 		isJumping:    false,
 		originalSize: 32.,
-		playerSize:   playerSize,
 		position:     startPosition,
 		texture:      rl.LoadTextureFromImage(spriteSheet),
 		textureBox:   rl.NewRectangle(0, 0, 32., 32.),

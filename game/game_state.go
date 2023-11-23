@@ -62,7 +62,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 		highScores:                 []Score{},
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
 		platformHitBoxes:           makePlatforms(windowDimens[1]/2.+spriteSize*2., spriteSize),
-		player:                     NewPlayer("./assets/player.png", rl.NewVector2(50., (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
+		player:                     NewPlayer("./assets/player.png", rl.NewVector2(100, (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
 		playerHitCounter:           0,
 		playerLives:                1,
 		playerOneUpCounter:         0,
@@ -123,12 +123,13 @@ func updateGameState(game *GameState, delta float32) {
 	updatePlayer(game, delta)
 
 	updateSpawners(game, delta)
-
 	updatePlatformHitBoxes(game)
 }
 
 func updatePlayer(game *GameState, delta float32) {
 	game.player = UpdatePlayer(game.player, delta)
+
+	confinePlayer(game)
 
 	if game.player.position.Y > game.windowDimens.height+game.spriteSize+32. {
 		game.state = State(GAME_OVER)
@@ -139,6 +140,22 @@ func updatePlayer(game *GameState, delta float32) {
 		return
 	}
 
+	handleBrokenPlatforms(game)
+}
+
+func confinePlayer(game *GameState) {
+	const OFFSET = 3
+	xMin := game.player.originalSize - OFFSET
+	xMax := game.windowDimens.width - (game.player.originalSize - OFFSET)
+
+	if game.player.position.X < xMin {
+		game.player.position.X = xMin
+	} else if game.player.position.X > xMax {
+		game.player.position.X = xMax
+	}
+}
+
+func handleBrokenPlatforms(game *GameState) {
 	platformIndex := CellFrom(game.player.position.X, game.spriteSize, TOTAL_PLATFORMS)
 
 	platform := game.platformHitBoxes[platformIndex]
@@ -154,7 +171,6 @@ func updatePlayer(game *GameState, delta float32) {
 			game.player.halt = true
 		}
 	}
-
 }
 
 func updateSpawners(game *GameState, delta float32) {
