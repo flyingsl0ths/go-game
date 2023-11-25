@@ -1,6 +1,11 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"os"
+	"strconv"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 const (
 	TITLE       uint32 = 0
@@ -43,7 +48,7 @@ type GameState struct {
 }
 
 func NewGameState(windowDimens [2]float32) GameState {
-	textures := NewTextureAtlas("./assets/level.png", "./assets/bg.png", "./assets/hud.png", windowDimens)
+	textures := NewTextureAtlas(windowDimens)
 
 	const spriteSize float32 = 64.
 
@@ -52,7 +57,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 		top:    0.0 - textures.food[0].Width,
 		width:  windowDimens[0]}
 
-	gameFont := rl.LoadFont("./assets/main.ttf")
+	gameFont := rl.LoadFont(mkAssetDir("main.ttf"))
 
 	return GameState{
 		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
@@ -62,7 +67,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 		highScores:                 []Score{},
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
 		platformHitBoxes:           makePlatforms(windowDimens[1]/2.+spriteSize*2., spriteSize),
-		player:                     NewPlayer("./assets/player.png", rl.NewVector2(100, (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
+		player:                     NewPlayer(mkAssetDir("player.png"), rl.NewVector2(100, (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
 		playerHitCounter:           0,
 		playerLives:                1,
 		playerOneUpCounter:         0,

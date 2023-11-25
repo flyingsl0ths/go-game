@@ -3,6 +3,8 @@ package game
 import (
 	"math"
 	"math/rand"
+	"os"
+	"strconv"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -60,3 +62,9 @@ func CollideWithSides(r1 rl.Rectangle, r2 rl.Rectangle) string {
 
 	return collision
 }
+
+func mkDir(rootDirectory string) func(string) string {
+	return func(file string) string { return (rootDirectory + strconv.QuoteRune(os.PathSeparator) + file) }
+}
+
+var mkAssetDir func(string) string = mkDir("os" + strconv.QuoteRune(os.PathSeparator) + "assets")
