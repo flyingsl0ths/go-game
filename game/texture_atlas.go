@@ -21,10 +21,10 @@ type TextureAtlas struct {
 }
 
 func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
-	objects := rl.LoadImage(mkAssetDir("level.png"))
-	bg := rl.LoadImage(mkAssetDir("bg.png"))
-	hud := rl.LoadImage(mkAssetDir("hud.png"))
-	buttons := rl.LoadImage(mkAssetDir("button.png"))
+	objects := rl.LoadImage(MkAssetDir("level.png"))
+	bg := rl.LoadImage(MkAssetDir("bg.png"))
+	hud := rl.LoadImage(MkAssetDir("hud.png"))
+	buttons := rl.LoadImage(MkAssetDir("button.png"))
 
 	defer rl.UnloadImage(hud)
 	defer rl.UnloadImage(objects)
