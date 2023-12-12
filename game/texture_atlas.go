@@ -17,7 +17,7 @@ type TextureAtlas struct {
 	scenery       []rl.Rectangle
 	food          []rl.Rectangle
 	objects       []rl.Rectangle
-	buttons       [9]rl.Rectangle
+	buttons       []rl.Rectangle
 }
 
 func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
@@ -33,14 +33,12 @@ func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
 
 	rl.ImageResizeNN(bg, int32(windowSize[0]), int32(windowSize[1]))
 
-	btns := rl.LoadTextureFromImage(buttons)
-
 	atlas := TextureAtlas{
 		textureSheets: TextureSheets{
 			level:   rl.LoadTextureFromImage(objects),
 			bg:      rl.LoadTextureFromImage(bg),
 			hud:     rl.LoadTextureFromImage(hud),
-			buttons: btns,
+			buttons: rl.LoadTextureFromImage(buttons),
 		},
 		hud:       makeHUDRectangles(),
 		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),
@@ -48,7 +46,7 @@ func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
 		scenery:   makeRectangles(5, 16, rl.NewVector2(139., 0.), 16, 16),
 		food:      makeCollectables(),
 		objects:   makeRectangles(15, 16, rl.NewVector2(0., 64.), 16, 15),
-		buttons:   makeNineSlice(float32(btns.Width), float32(btns.Height)),
+		buttons:   makeButtonRectangles(),
 	}
 
 	return atlas
@@ -104,24 +102,16 @@ func makeRectangles(count int, stride float32, startPosition rl.Vector2, width f
 	return rects
 }
 
-func makeNineSlice(width float32, height float32) [9]rl.Rectangle {
-	result := [9]rl.Rectangle{}
+func makeButtonRectangles() []rl.Rectangle {
+	res := make([]rl.Rectangle, 3)
 
-	rectWidth := width / 3.
-	rectHeight := height / 3.
+	const NORMAL = 0
+	const HOVER = 1
+	const PRESSED = 2
 
-	for i := range [3]int{0, 1, 2} {
-		i_ := float32(i)
+	res[NORMAL] = rl.NewRectangle(0, 0, 380, 203)
+	res[HOVER] = rl.NewRectangle(0, 203, 380, 203)
+	res[PRESSED] = rl.NewRectangle(0, 203, 380, 197)
 
-		const X float32 = 0
-		x2 := (i_ + 1) * rectWidth
-		x3 := (i_ + 2) * rectWidth
-		y := i_ * rectHeight
-
-		result[i] = rl.NewRectangle(X, y, rectWidth, rectHeight)
-		result[i+1] = rl.NewRectangle(x2, y, rectWidth, rectHeight)
-		result[i+2] = rl.NewRectangle(x3, y, rectWidth, rectHeight)
-	}
-
-	return result
+	return res
 }

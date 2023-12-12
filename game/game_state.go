@@ -11,6 +11,7 @@ const (
 
 	TOTAL_PLATFORMS             = 1280 / 64
 	GAME_OVER_FONT_SIZE float32 = 100.
+	GAME_FONT_SIZE      float32 = GAME_OVER_FONT_SIZE / 2.
 	ONE_UP              uint32  = 1000
 	PLAYER_HIT_MAX      uint32  = 10
 	MAX_POINTS          uint32  = 999999999
@@ -29,12 +30,13 @@ type GameState struct {
 	gameOverTextAnimationTimer float32
 	gameOverTextPos            rl.Vector2
 	highScores                 []Score
+	pauseButtons               [2]Button
 	objects                    Spawner
 	platformHitBoxes           [TOTAL_PLATFORMS]HitBox
-	player                     Player
 	playerHitCounter           uint32
 	playerLives                uint32
 	playerOneUpCounter         uint32
+	player                     Player
 	playerPoints               uint32
 	spriteSize                 float32
 	state                      State
@@ -54,24 +56,39 @@ func NewGameState(windowDimens [2]float32) GameState {
 
 	gameFont := rl.LoadFont(MkAssetDir("main.ttf"))
 
-	return GameState{
+	window := WindowDimens{width: windowDimens[0], height: windowDimens[1]}
+
+	cX, cY := Center(window)
+
+	state := GameState{
 		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, spawnBoundaries),
 		font:                       gameFont,
 		gameOverTextAnimationTimer: 0.,
-		gameOverTextPos:            rl.NewVector2((windowDimens[0]/2.)-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
+		gameOverTextPos:            rl.NewVector2(cX-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
 		highScores:                 []Score{},
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), spawnBoundaries),
-		platformHitBoxes:           makePlatforms(windowDimens[1]/2.+spriteSize*2., spriteSize),
-		player:                     NewPlayer(MkAssetDir("player.png"), rl.NewVector2(100, (windowDimens[1]/2.)+spriteSize+20.), windowDimens[1]+spriteSize+32., spriteSize+32.),
+		pauseButtons:               [2]Button{NewButton(func() {}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), cY-GAME_FONT_SIZE*2.5)), NewButton(func() {}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), cY-GAME_FONT_SIZE*0.15))},
+		platformHitBoxes:           makePlatforms(cY+spriteSize*2., spriteSize),
+		player:                     NewPlayer(MkAssetDir("player.png"), rl.NewVector2(100, cY+spriteSize+20.), cY+spriteSize+32., spriteSize+32.),
 		playerHitCounter:           0,
 		playerLives:                1,
 		playerOneUpCounter:         0,
 		playerPoints:               0,
 		spriteSize:                 spriteSize,
-		state:                      State(GAME),
+		state:                      State(PAUSED),
 		textures:                   textures,
-		windowDimens:               WindowDimens{width: windowDimens[0], height: windowDimens[1]},
+		windowDimens:               window,
 	}
+
+	state.pauseButtons[0].onClick = func() {
+		state.state = State(GAME)
+	}
+
+	state.pauseButtons[1].onClick = func() {
+		state.state = State(TITLE)
+	}
+
+	return state
 }
 
 func makePlatforms(yPos float32, platformSize float32) [TOTAL_PLATFORMS]HitBox {

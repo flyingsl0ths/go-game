@@ -181,7 +181,7 @@ func RunGame(game *GameState, delta float32) {
 	case State(TITLE):
 		break
 	case State(PAUSED):
-		break
+		onPauseState(game, delta)
 	case State(GAME):
 		onGameState(game, delta)
 		break
@@ -193,6 +193,38 @@ func RunGame(game *GameState, delta float32) {
 	}
 
 	rl.EndDrawing()
+}
+
+func onPauseState(game *GameState, delta float32) {
+	updateButtons(game, delta)
+	drawGameState(game)
+	drawButtons(game, delta)
+}
+
+func updateButtons(game *GameState, delta float32) {
+
+}
+
+func drawButtons(game *GameState, delta float32) {
+	const BUTTON_WIDTH float32 = 281.
+	const BUTTON_HEIGHT float32 = 103.
+
+	buttonFont := rl.GetFontDefault()
+
+	button := game.pauseButtons[0]
+	buttonTextColor := rl.NewColor(255, 80, 88, 255)
+
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
+		rl.NewVector2(0., 0), 0., rl.White)
+
+	rl.DrawTextEx(buttonFont, "RESUME", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
+
+	button = game.pauseButtons[1]
+
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[game.pauseButtons[1].state], button.position,
+		rl.NewVector2(0, 0), 0., rl.White)
+
+	rl.DrawTextEx(buttonFont, " TITLE", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 }
 
 func onGameState(game *GameState, delta float32) {
