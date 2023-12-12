@@ -13,6 +13,12 @@ type WindowDimens struct {
 	height float32
 }
 
+func Center(dimensions WindowDimens) (x float32, y float32) {
+	x = dimensions.width / 2.
+	y = dimensions.height / 2.
+	return x, y
+}
+
 func RandRange(min int, max int) int {
 	if min > max {
 		return 0
@@ -66,5 +72,5 @@ func MkDir(rootDirectory string) func(string) string {
 	return func(file string) string { return (rootDirectory + string(os.PathSeparator) + file) }
 }
 
-var assetDir string = ".." + string(os.PathSeparator) + "assets"
+var assetDir string = "." + string(os.PathSeparator) + "assets"
 var MkAssetDir func(string) string = MkDir(assetDir)
