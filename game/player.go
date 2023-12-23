@@ -18,7 +18,7 @@ type Player struct {
 	wasHit       bool
 }
 
-func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, bottom float32, playerSize float32) Player {
+func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, ground float32, playerSize float32) Player {
 	spriteSheet := rl.LoadImage(spriteSheetPath)
 
 	defer rl.UnloadImage(spriteSheet)
@@ -41,7 +41,7 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, bottom float32,
 		textureBox:   rl.NewRectangle(0, 0, 32., 32.),
 		textureSize:  playerSize,
 		physics: Physics[rl.Vector2]{
-			bottom:     bottom,
+			bottom:     ground,
 			gravity:    -500,
 			ground:     startPosition.Y,
 			jumpHeight: -jumpHeight,

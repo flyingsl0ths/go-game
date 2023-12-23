@@ -195,23 +195,125 @@ func RunGame(game *GameState, delta float32) {
 	rl.EndDrawing()
 }
 
-func onPauseState(game *GameState, delta float32) {
-	updateButtons(game, delta)
-	drawGameState(game)
-	drawButtons(game, delta)
+func onTitleState(game *GameState, delta float32) {
+	updateTitleState(game, delta)
+	drawTitleState(game)
 }
 
-func updateButtons(game *GameState, delta float32) {
+func updateTitleState(game *GameState, delta float32) {
+	UpdateSpawner(&game.titleScreenCollectables, func(item *Item, delta float32) bool {
+		item.position.Y += item.gravity * delta
 
+		item.rotation += 1.5
+
+		return true
+	}, delta)
+
+	updateTitleScreenButtons(game)
 }
 
-func drawButtons(game *GameState, delta float32) {
+func updateTitleScreenButtons(game *GameState) {
+	total := len(game.titleScreenButtons.buttons)
+
+	buttons := game.titleScreenButtons.buttons
+	for i := 0; i < total; i++ {
+		if rl.IsMouseButtonReleased(rl.MouseLeftButton) && rl.CheckCollisionPointRec(rl.GetMousePosition(), buttons[i].position) {
+			buttons[i].state = PRESSED
+			buttons[game.titleScreenButtons.lastActive].state = NORMAL
+			buttons[i].onClick(game)
+			game.titleScreenButtons.lastActive = uint(i)
+			continue
+		} else if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttons[i].position) {
+			buttons[i].state = HOVER
+			buttons[game.titleScreenButtons.lastActive].state = NORMAL
+			game.titleScreenButtons.lastActive = uint(i)
+			continue
+		}
+
+		buttons[i].state = NORMAL
+		game.titleScreenButtons.lastActive = uint(i)
+	}
+}
+
+func drawTitleState(game *GameState) {
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
+
+	for _, item := range game.titleScreenCollectables.items {
+		rl.DrawTexturePro(game.textures.textureSheets.level,
+			game.textures.food[item.itemID],
+			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
+			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
+	}
+
+	rl.DrawTexture(game.textures.textureSheets.titleScreenImage, int32(game.titleScreenImagePos.X), int32(game.titleScreenImagePos.Y), rl.White)
+
+	drawTitleScreenButtons(game)
+}
+
+func drawTitleScreenButtons(game *GameState) {
 	const BUTTON_WIDTH float32 = 281.
 	const BUTTON_HEIGHT float32 = 103.
 
 	buttonFont := rl.GetFontDefault()
 
-	button := game.pauseButtons[0]
+	button := game.titleScreenButtons.buttons[0]
+	buttonTextColor := rl.NewColor(255, 80, 88, 255)
+
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
+		rl.NewVector2(0., 0), 0., rl.White)
+
+	rl.DrawTextEx(buttonFont, "  GAME", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
+
+	button = game.titleScreenButtons.buttons[1]
+
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
+		rl.NewVector2(0, 0), 0., rl.White)
+
+	rl.DrawTextEx(buttonFont, "SCORES", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
+
+	button = game.titleScreenButtons.buttons[2]
+
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
+		rl.NewVector2(0, 0), 0., rl.White)
+
+	rl.DrawTextEx(buttonFont, "  EXIT", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
+}
+
+func onPauseState(game *GameState, delta float32) {
+	updatePauseScreenButtons(game, delta)
+	drawGameState(game)
+	drawPauseScreenButtons(game, delta)
+}
+
+func updatePauseScreenButtons(game *GameState, delta float32) {
+	total := len(game.pauseScreenButtons)
+
+	buttons := game.pauseScreenButtons
+	for i := 0; i < total; i++ {
+		lastModified := (i + 1) % total
+
+		if rl.IsMouseButtonReleased(rl.MouseLeftButton) && rl.CheckCollisionPointRec(rl.GetMousePosition(), buttons[i].position) {
+			buttons[i].state = PRESSED
+			buttons[lastModified].state = NORMAL
+			buttons[i].onClick(game)
+			continue
+		} else if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttons[i].position) {
+			buttons[i].state = HOVER
+			buttons[lastModified].state = NORMAL
+			continue
+		}
+
+		buttons[i].state = NORMAL
+	}
+}
+
+func drawPauseScreenButtons(game *GameState, delta float32) {
+	const BUTTON_WIDTH float32 = 281.
+	const BUTTON_HEIGHT float32 = 103.
+
+	buttonFont := rl.GetFontDefault()
+
+	button := game.pauseScreenButtons[0]
 	buttonTextColor := rl.NewColor(255, 80, 88, 255)
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
@@ -219,9 +321,9 @@ func drawButtons(game *GameState, delta float32) {
 
 	rl.DrawTextEx(buttonFont, "RESUME", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 
-	button = game.pauseButtons[1]
+	button = game.pauseScreenButtons[1]
 
-	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[game.pauseButtons[1].state], button.position,
+	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
 		rl.NewVector2(0, 0), 0., rl.White)
 
 	rl.DrawTextEx(buttonFont, " TITLE", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
@@ -234,8 +336,13 @@ func onGameState(game *GameState, delta float32) {
 }
 
 func updateGameState(game *GameState, delta float32) {
-	updatePlayer(game, delta)
+	if (rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift)) && rl.IsKeyDown(rl.KeySpace) {
+		game.lastState = game.state
+		game.state = PAUSED
+		return
+	}
 
+	updatePlayer(game, delta)
 	updateSpawners(game, delta)
 	updatePlatformHitBoxes(game)
 }
@@ -288,7 +395,7 @@ func handleBrokenPlatforms(game *GameState) {
 }
 
 func updateSpawners(game *GameState, delta float32) {
-	collectablesMover := func(item *Item, delta float32) bool {
+	collectables := func(item *Item, delta float32) bool {
 		spawnMover(game, item, delta)
 
 		if item.collided && !game.player.wasHit {
@@ -313,7 +420,7 @@ func updateSpawners(game *GameState, delta float32) {
 		return true
 	}
 
-	objectMover := func(item *Item, delta float32) bool {
+	objects := func(item *Item, delta float32) bool {
 		spawnMover(game, item, delta)
 
 		if !item.collided {
@@ -340,9 +447,9 @@ func updateSpawners(game *GameState, delta float32) {
 		return true
 	}
 
-	UpdateSpawner(&game.objects, objectMover, delta)
+	UpdateSpawner(&game.objects, objects, delta)
 
-	UpdateSpawner(&game.collectables, collectablesMover, delta)
+	UpdateSpawner(&game.collectables, collectables, delta)
 }
 
 func spawnMover(game *GameState, item *Item, delta float32) {

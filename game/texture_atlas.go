@@ -3,21 +3,31 @@ package game
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 type TextureSheets struct {
-	level   rl.Texture2D
-	bg      rl.Texture2D
-	hud     rl.Texture2D
-	buttons rl.Texture2D
+	bg               rl.Texture2D
+	buttons          rl.Texture2D
+	hud              rl.Texture2D
+	level            rl.Texture2D
+	titleScreenImage rl.Texture2D
 }
 
 type TextureAtlas struct {
-	textureSheets TextureSheets
-	hud           []rl.Rectangle
-	platforms     []rl.Rectangle
-	overlays      []rl.Rectangle
-	scenery       []rl.Rectangle
-	food          []rl.Rectangle
-	objects       []rl.Rectangle
 	buttons       []rl.Rectangle
+	food          []rl.Rectangle
+	hud           []rl.Rectangle
+	objects       []rl.Rectangle
+	overlays      []rl.Rectangle
+	platforms     []rl.Rectangle
+	scenery       []rl.Rectangle
+	textureSheets TextureSheets
+}
+
+func (ta *TextureAtlas) Release() {
+	textureSheets := &ta.textureSheets
+	rl.UnloadTexture(textureSheets.bg)
+	rl.UnloadTexture(textureSheets.buttons)
+	rl.UnloadTexture(textureSheets.hud)
+	rl.UnloadTexture(textureSheets.level)
+	rl.UnloadTexture(textureSheets.titleScreenImage)
 }
 
 func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
@@ -25,20 +35,23 @@ func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
 	bg := rl.LoadImage(MkAssetDir("bg.png"))
 	hud := rl.LoadImage(MkAssetDir("hud.png"))
 	buttons := rl.LoadImage(MkAssetDir("button.png"))
+	titleScreenImage := rl.LoadImage(MkAssetDir("title.png"))
 
 	defer rl.UnloadImage(hud)
 	defer rl.UnloadImage(objects)
 	defer rl.UnloadImage(bg)
 	defer rl.UnloadImage(buttons)
+	defer rl.UnloadImage(titleScreenImage)
 
 	rl.ImageResizeNN(bg, int32(windowSize[0]), int32(windowSize[1]))
 
 	atlas := TextureAtlas{
 		textureSheets: TextureSheets{
-			level:   rl.LoadTextureFromImage(objects),
-			bg:      rl.LoadTextureFromImage(bg),
-			hud:     rl.LoadTextureFromImage(hud),
-			buttons: rl.LoadTextureFromImage(buttons),
+			level:            rl.LoadTextureFromImage(objects),
+			bg:               rl.LoadTextureFromImage(bg),
+			hud:              rl.LoadTextureFromImage(hud),
+			buttons:          rl.LoadTextureFromImage(buttons),
+			titleScreenImage: rl.LoadTextureFromImage(titleScreenImage),
 		},
 		hud:       makeHUDRectangles(),
 		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),

@@ -18,5 +18,9 @@ func main() {
 
 	for !rl.WindowShouldClose() {
 		gm.RunGame(&game, rl.GetFrameTime())
+		if gm.ExitGame(&game) {
+			game.Release()
+			break
+		}
 	}
 }
