@@ -11,18 +11,18 @@ const (
 )
 
 type Button struct {
-	onClick      func()
+	onClick      func(state *GameState)
 	position     rl.Rectangle
 	state        ButtonState
 	textPosition rl.Vector2
 }
 
 type ButtonGroup struct {
-	active  uint
-	buttons []Button
+	lastActive uint
+	buttons    []Button
 }
 
-func NewButton(onClick func(), position rl.Vector2) Button {
+func NewButton(onClick func(state *GameState), position rl.Vector2) Button {
 	const BUTTON_WIDTH float32 = 281.
 	const BUTTON_HEIGHT float32 = 103.
 
