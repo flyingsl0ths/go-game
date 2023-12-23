@@ -2,12 +2,14 @@ package game
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
+type State uint32
+
 const (
-	TITLE       uint32 = 0
-	PAUSED      uint32 = 1
-	GAME        uint32 = 2
-	GAME_OVER   uint32 = 3
-	HIGH_SCORES uint32 = 4
+	TITLE       State = 0
+	PAUSED      State = 1
+	GAME        State = 2
+	GAME_OVER   State = 3
+	HIGH_SCORES State = 4
 
 	TOTAL_PLATFORMS             = 1280 / 64
 	GAME_OVER_FONT_SIZE float32 = 100.
@@ -16,8 +18,6 @@ const (
 	PLAYER_HIT_MAX      uint32  = 10
 	MAX_POINTS          uint32  = 999999999
 )
-
-type State uint32
 
 type Score struct {
 	name  string

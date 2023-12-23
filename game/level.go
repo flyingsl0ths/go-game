@@ -178,17 +178,17 @@ func RunGame(game *GameState, delta float32) {
 	rl.ClearBackground(rl.RayWhite)
 
 	switch game.state {
-	case State(TITLE):
-		break
-	case State(PAUSED):
+	case TITLE:
+		onTitleState(game, delta)
+	case PAUSED:
 		onPauseState(game, delta)
-	case State(GAME):
+	case GAME:
 		onGameState(game, delta)
 		break
-	case State(GAME_OVER):
+	case GAME_OVER:
 		onGameOver(game, delta)
 		break
-	case State(HIGH_SCORES):
+	case HIGH_SCORES:
 		break
 	}
 
@@ -419,7 +419,8 @@ func updateGameOverState(game *GameState, delta float32) {
 	game.gameOverTextPos.Y += 10. * ElasticEaseOut(game.gameOverTextAnimationTimer, 0., 1., 0.5)
 
 	if game.gameOverTextAnimationTimer >= 0.75 {
-		game.state = State(HIGH_SCORES)
+		game.state = HIGH_SCORES
+		game.lastState = HIGH_SCORES
 	}
 }
 
