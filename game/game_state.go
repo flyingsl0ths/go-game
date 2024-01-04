@@ -1,15 +1,20 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"os"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type State uint32
 
 const (
-	TITLE       State = 0
-	PAUSED      State = 1
-	GAME        State = 2
-	GAME_OVER   State = 3
-	HIGH_SCORES State = 4
+	TITLE            State = 0
+	PAUSED           State = 1
+	GAME             State = 2
+	GAME_OVER        State = 3
+	HIGH_SCORE_INPUT State = 4
+	HIGH_SCORES      State = 5
 
 	TOTAL_PLATFORMS             = 1280 / 64
 	GAME_OVER_FONT_SIZE float32 = 100.
@@ -30,7 +35,8 @@ type GameState struct {
 	font                       rl.Font
 	gameOverTextAnimationTimer float32
 	gameOverTextPos            rl.Vector2
-	highScores                 []Score
+	highScoreNameBannerPos     rl.Vector2
+	highScores                 [5]Score
 	lastState                  State
 	levelSpawnBoundaries       Boundaries
 	objects                    Spawner
@@ -41,6 +47,7 @@ type GameState struct {
 	playerOneUpCounter         uint32
 	player                     Player
 	playerPoints               uint32
+	scores                     []Score
 	spriteSize                 float32
 	state                      State
 	textures                   TextureAtlas
@@ -70,14 +77,21 @@ func NewGameState(windowDimens [2]float32) GameState {
 
 	cX, cY := Center(window)
 
+	pathSep := string(os.PathSeparator)
+	scores, err := DecodeInto[[]Score]("."+pathSep+"assets"+pathSep+"high_scores.json", []Score{})
+	if err != nil {
+		panic("Unable to load high scores!! Exiting")
+	}
+
 	return GameState{
 		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, levelSpawnBoundaries),
 		exitGame:                   false,
 		font:                       gameFont,
 		gameOverTextAnimationTimer: 0.,
 		gameOverTextPos:            rl.NewVector2(cX-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
-		highScores:                 []Score{},
-		lastState:                  TITLE,
+		highScoreNameBannerPos:     rl.NewVector2(cX-(GAME_FONT_SIZE*5.5), 150.),
+		highScores:                 [5]Score{},
+		lastState:                  HIGH_SCORE_INPUT,
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), levelSpawnBoundaries),
 
 		pauseScreenButtons: []Button{
@@ -87,7 +101,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 			},
 				rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), cY-GAME_FONT_SIZE*2.5)), NewButton(func(state *GameState) {
 				state.lastState = state.state
-				state.state = TITLE
+				state.state = HIGH_SCORE_INPUT
 			}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), cY-GAME_FONT_SIZE*0.15))},
 
 		platformHitBoxes:   makePlatforms(cY+spriteSize*2., spriteSize),
@@ -96,8 +110,9 @@ func NewGameState(windowDimens [2]float32) GameState {
 		playerLives:        1,
 		playerOneUpCounter: 0,
 		playerPoints:       0,
+		scores:             scores,
 		spriteSize:         spriteSize,
-		state:              TITLE,
+		state:              HIGH_SCORE_INPUT,
 		textures:           textures,
 		titleScreenButtons: ButtonGroup{
 			lastActive: 0,

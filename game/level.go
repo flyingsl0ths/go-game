@@ -18,6 +18,8 @@ func RunGame(game *GameState, delta float32) {
 		onPauseState(game, delta)
 	case GAME:
 		onGameState(game, delta)
+	case HIGH_SCORE_INPUT:
+		onHighScoreInput(game, delta)
 		break
 	case GAME_OVER:
 		onGameOver(game, delta)
@@ -169,6 +171,11 @@ func onGameState(game *GameState, delta float32) {
 	drawGameState(game)
 }
 
+func onHighScoreInput(game *GameState, delta float32) {
+	drawGameOverState(game)
+	drawHighScoreInputLayer(game)
+}
+
 func updateGameState(game *GameState, delta float32) {
 	if (rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift)) && rl.IsKeyDown(rl.KeySpace) {
 		game.lastState = game.state
@@ -272,7 +279,7 @@ func updateSpawners(game *GameState, delta float32) {
 		if game.playerHitCounter == 0 {
 			game.playerLives -= 1
 			if game.playerLives == 0 {
-				game.state = State(GAME_OVER)
+				game.state = HIGH_SCORE_INPUT
 			}
 			return false
 		}
@@ -517,7 +524,7 @@ func drawSpawnedObjects(game *GameState) {
 func onGameOver(game *GameState, delta float32) {
 	updateGameOverState(game, delta)
 
-	drawGameOverState(game, delta)
+	drawGameOverState(game)
 }
 
 func updateGameOverState(game *GameState, delta float32) {
@@ -531,7 +538,7 @@ func updateGameOverState(game *GameState, delta float32) {
 	}
 }
 
-func drawGameOverState(game *GameState, delta float32) {
+func drawGameOverState(game *GameState) {
 	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
 
 	DrawHUD(game.textures, game.windowDimens, game.playerLives, game.playerPoints)
@@ -543,4 +550,8 @@ func drawGameOverState(game *GameState, delta float32) {
 	DrawPlayer(game.player)
 
 	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize, game.platformHitBoxes)
+}
+
+func drawHighScoreInputLayer(game *GameState) {
+	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.NewColor(uint8(180), uint8(227), uint8(87), uint8(255)))
 }

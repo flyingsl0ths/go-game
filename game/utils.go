@@ -68,9 +68,10 @@ func CollideWithSides(r1 rl.Rectangle, r2 rl.Rectangle) string {
 	return collision
 }
 
+const assetDir string = "." + string(os.PathSeparator) + "assets"
+
 func MkDir(rootDirectory string) func(string) string {
 	return func(file string) string { return (rootDirectory + string(os.PathSeparator) + file) }
 }
 
-var assetDir string = "." + string(os.PathSeparator) + "assets"
 var MkAssetDir func(string) string = MkDir(assetDir)
