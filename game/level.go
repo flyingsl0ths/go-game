@@ -172,7 +172,8 @@ func onGameState(game *GameState, delta float32) {
 }
 
 func onHighScoreInput(game *GameState, delta float32) {
-	drawGameOverState(game)
+	game.textInput = UpdateTextInput(game.textInput)
+	drawGameState(game)
 	drawHighScoreInputLayer(game)
 }
 
@@ -528,13 +529,13 @@ func onGameOver(game *GameState, delta float32) {
 }
 
 func updateGameOverState(game *GameState, delta float32) {
-	game.gameOverTextAnimationTimer += 0.0039
+	game.gameOverTextAnimationTimer += 0.0040
 
 	game.gameOverTextPos.Y += 10. * ElasticEaseOut(game.gameOverTextAnimationTimer, 0., 1., 0.5)
 
 	if game.gameOverTextAnimationTimer >= 0.75 {
-		game.state = HIGH_SCORES
-		game.lastState = HIGH_SCORES
+		game.state = HIGH_SCORE_INPUT
+		game.lastState = HIGH_SCORE_INPUT
 	}
 }
 
@@ -554,4 +555,6 @@ func drawGameOverState(game *GameState) {
 
 func drawHighScoreInputLayer(game *GameState) {
 	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.NewColor(uint8(180), uint8(227), uint8(87), uint8(255)))
+
+	DrawTextInput(game.textInput)
 }

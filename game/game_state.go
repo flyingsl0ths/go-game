@@ -42,14 +42,15 @@ type GameState struct {
 	objects                    Spawner
 	pauseScreenButtons         []Button
 	platformHitBoxes           [TOTAL_PLATFORMS]HitBox
+	player                     Player
 	playerHitCounter           uint32
 	playerLives                uint32
 	playerOneUpCounter         uint32
-	player                     Player
 	playerPoints               uint32
 	scores                     []Score
 	spriteSize                 float32
 	state                      State
+	textInput                  TextInput
 	textures                   TextureAtlas
 	titleScreenButtons         ButtonGroup
 	titleScreenCollectables    Spawner
@@ -91,7 +92,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 		gameOverTextPos:            rl.NewVector2(cX-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
 		highScoreNameBannerPos:     rl.NewVector2(cX-(GAME_FONT_SIZE*5.5), 150.),
 		highScores:                 [5]Score{},
-		lastState:                  HIGH_SCORE_INPUT,
+		lastState:                  GAME_OVER,
 		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), levelSpawnBoundaries),
 
 		pauseScreenButtons: []Button{
@@ -112,7 +113,8 @@ func NewGameState(windowDimens [2]float32) GameState {
 		playerPoints:       0,
 		scores:             scores,
 		spriteSize:         spriteSize,
-		state:              HIGH_SCORE_INPUT,
+		state:              GAME_OVER,
+		textInput:          NewTextInput(GAME_FONT_SIZE, 10, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.Black),
 		textures:           textures,
 		titleScreenButtons: ButtonGroup{
 			lastActive: 0,
