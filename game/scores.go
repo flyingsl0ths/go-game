@@ -1,24 +1,26 @@
 package game
 
-import (
-	"encoding/json"
-	"os"
-)
+const HIGHEST_SCORE = 9999999999
 
 type PlayerScore struct {
-	Player string `json:"player"`
-	Score  uint32 `json:"score"`
+	PlayerName string `json:"player"`
+	Score      uint32 `json:"score"`
 }
 
-func DecodeInto[T any](filePath string, source T) (T, error) {
-	dat, err := os.ReadFile(filePath)
-	if err != nil {
-		return source, err
-	}
-	err = json.Unmarshal(dat, &source)
-	if err != nil {
-		return source, err
+type ScoreBoard struct {
+	firstPosted bool
+	scores      [5]PlayerScore
+}
+
+func HighestScore(highScores [5]PlayerScore, newScore PlayerScore) int {
+	highScorePosition := 0
+
+	for index, highScore := range highScores {
+		if highScore.Score < newScore.Score || highScore.Score == newScore.Score {
+			highScorePosition = index
+			break
+		}
 	}
 
-	return source, nil
+	return highScorePosition
 }

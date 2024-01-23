@@ -72,16 +72,16 @@ func updateTitleScreenButtons(game *GameState) {
 }
 
 func drawTitleState(game *GameState) {
-	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.RayWhite)
 
 	for _, item := range game.titleScreenCollectables.items {
 		rl.DrawTexturePro(game.textures.textureSheets.level,
 			game.textures.food[item.itemID],
 			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
-			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
+			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.RayWhite)
 	}
 
-	rl.DrawTexture(game.textures.textureSheets.titleScreenImage, int32(game.titleScreenImagePos.X), int32(game.titleScreenImagePos.Y), rl.White)
+	rl.DrawTexture(game.textures.textureSheets.titleScreenImage, int32(game.titleScreenImagePos.X), int32(game.titleScreenImagePos.Y), rl.RayWhite)
 
 	drawTitleScreenButtons(game)
 }
@@ -96,21 +96,21 @@ func drawTitleScreenButtons(game *GameState) {
 	buttonTextColor := rl.NewColor(255, 80, 88, 255)
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
-		rl.NewVector2(0., 0), 0., rl.White)
+		rl.NewVector2(0., 0), 0., rl.RayWhite)
 
 	rl.DrawTextEx(buttonFont, "  GAME", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 
 	button = game.titleScreenButtons.buttons[1]
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
-		rl.NewVector2(0, 0), 0., rl.White)
+		rl.NewVector2(0, 0), 0., rl.RayWhite)
 
 	rl.DrawTextEx(buttonFont, "SCORES", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 
 	button = game.titleScreenButtons.buttons[2]
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
-		rl.NewVector2(0, 0), 0., rl.White)
+		rl.NewVector2(0, 0), 0., rl.RayWhite)
 
 	rl.DrawTextEx(buttonFont, "  EXIT", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 }
@@ -153,14 +153,14 @@ func drawPauseScreenButtons(game *GameState, delta float32) {
 	buttonTextColor := rl.NewColor(255, 80, 88, 255)
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
-		rl.NewVector2(0., 0), 0., rl.White)
+		rl.NewVector2(0., 0), 0., rl.RayWhite)
 
 	rl.DrawTextEx(buttonFont, "RESUME", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 
 	button = game.pauseScreenButtons[1]
 
 	rl.DrawTexturePro(game.textures.textureSheets.buttons, game.textures.buttons[button.state], button.position,
-		rl.NewVector2(0, 0), 0., rl.White)
+		rl.NewVector2(0, 0), 0., rl.RayWhite)
 
 	rl.DrawTextEx(buttonFont, " TITLE", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 }
@@ -172,9 +172,43 @@ func onGameState(game *GameState, delta float32) {
 }
 
 func onHighScoreInput(game *GameState, delta float32) {
-	game.textInput = UpdateTextInput(game.textInput)
+	handleHighScoreInput(game)
+
 	drawGameState(game)
+
 	drawHighScoreInputLayer(game)
+}
+
+func handleHighScoreInput(game *GameState) {
+	game.textInput = UpdateTextInput(game.textInput)
+
+	if rl.IsKeyReleased(rl.KeyEnter) {
+		handleHighScoreEntered(game)
+	}
+}
+
+func handleHighScoreEntered(game *GameState) {
+	encoder, err := NewEncoder[[5]PlayerScore](game.highScoresFilePath)
+
+	defer encoder.Close()
+
+	if err != nil {
+		game.exitGame = true
+	}
+
+	newScore := PlayerScore{PlayerName: string(game.textInput.text), Score: game.playerPoints}
+
+	newScorePos := HighestScore(game.highScores, newScore)
+
+	game.scores[newScorePos] = newScore
+
+	if err := encoder.Encode(game.highScores); err != nil {
+		game.exitGame = true
+	}
+
+	game.state = HIGH_SCORES
+
+	game.lastState = HIGH_SCORE_INPUT
 }
 
 func updateGameState(game *GameState, delta float32) {
@@ -328,7 +362,7 @@ func updatePlatformHitBoxes(game *GameState) {
 }
 
 func drawGameState(game *GameState) {
-	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.RayWhite)
 
 	DrawHUD(game.textures, game.windowDimens, game.playerLives, game.playerPoints)
 
@@ -354,7 +388,7 @@ func drawPlayerIcons(textureAtlas TextureAtlas, lives uint32) {
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		lifeIcon,
 		rl.NewRectangle(0., 0., lifeIconSize+2., lifeIconSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 	lifeIconPos.X += lifeIconSize
 
@@ -363,7 +397,7 @@ func drawPlayerIcons(textureAtlas TextureAtlas, lives uint32) {
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		textureAtlas.hud[2],
 		rl.NewRectangle(lifeIconPos.X, lifeIconPos.Y+(multiplierIconSize/2.), multiplierIconSize, multiplierIconSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 	lifeIconPos.X += multiplierIconSize + PADDING
 	numberIconSize := textureAtlas.hud[3].Width * 2
@@ -384,14 +418,14 @@ func drawPlayerIcons(textureAtlas TextureAtlas, lives uint32) {
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		textureAtlas.hud[3+firstNumOffset],
 		rl.NewRectangle(lifeIconPos.X, lifeIconPos.Y, numberIconSize, numberIconSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 	lifeIconPos.X += numberIconSize + PADDING
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		textureAtlas.hud[3+secondNumOffset],
 		rl.NewRectangle(lifeIconPos.X, lifeIconPos.Y, numberIconSize, numberIconSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 }
 
 func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, points uint32) {
@@ -413,14 +447,14 @@ func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		pointsIcon,
 		rl.NewRectangle(pointsIconPos.X, pointsIconPos.Y, pointsIcon.Width*2., pointsIcon.Height*2),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 	pointsIconPos.X += pointsIconSize + IMAGE_PADDING
 
 	rl.DrawTexturePro(textureAtlas.textureSheets.hud,
 		multiplierIcon,
 		rl.NewRectangle(pointsIconPos.X, yOffset, multiplierIconSize, multiplierIconSize),
-		rl.NewVector2(0., 0.), 0., rl.White)
+		rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 	pointsIconPos.X += multiplierIconSize
 
@@ -440,7 +474,7 @@ func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, 
 			numberIcon,
 			rl.NewRectangle(pointsIconPos.X+(numberIconSize*float32(i))+IMAGE_PADDING,
 				yOffset, numberIconSize, numberIconSize),
-			rl.NewVector2(0., 0.), 0., rl.White)
+			rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 		playerPointsStride = i
 	}
@@ -456,7 +490,7 @@ func drawCollectableIcons(textureAtlas TextureAtlas, windowDimens WindowDimens, 
 			numberIcon,
 			rl.NewRectangle(pointsIconPos.X+(numberIconSize*float32(playerPointsStride))+IMAGE_PADDING,
 				yOffset, numberIconSize, numberIconSize),
-			rl.NewVector2(0., 0.), 0., rl.White)
+			rl.NewVector2(0., 0.), 0., rl.RayWhite)
 
 		playerPointsStride += 1
 	}
@@ -486,7 +520,7 @@ func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, texture
 			rl.DrawTexturePro(textureAtlas.textureSheets.level,
 				textureAtlas.platforms[tile],
 				platformRect,
-				rl.NewVector2(0., 0.), 0., rl.White)
+				rl.NewVector2(0., 0.), 0., rl.RayWhite)
 		} else {
 			continue
 		}
@@ -495,12 +529,12 @@ func DrawPlatforms(textureAtlas TextureAtlas, windowDimens WindowDimens, texture
 			rl.DrawTexturePro(textureAtlas.textureSheets.level,
 				textureAtlas.overlays[1],
 				platformRect,
-				rl.NewVector2(0., 0.), 0., rl.White)
+				rl.NewVector2(0., 0.), 0., rl.RayWhite)
 		} else if hitBoxes[i].damageCounter.percentage >= 45. {
 			rl.DrawTexturePro(textureAtlas.textureSheets.level,
 				textureAtlas.overlays[0],
 				platformRect,
-				rl.NewVector2(0., 0.), 0., rl.White)
+				rl.NewVector2(0., 0.), 0., rl.RayWhite)
 		}
 	}
 }
@@ -510,14 +544,14 @@ func drawSpawnedObjects(game *GameState) {
 		rl.DrawTexturePro(game.textures.textureSheets.level,
 			game.textures.food[item.itemID],
 			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
-			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
+			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.RayWhite)
 	}
 
 	for _, item := range game.objects.items {
 		rl.DrawTexturePro(game.textures.textureSheets.level,
 			game.textures.objects[item.itemID],
 			rl.NewRectangle(item.position.X, item.position.Y, game.spriteSize, game.spriteSize),
-			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.White)
+			rl.NewVector2(game.spriteSize/2., game.spriteSize/2.), item.rotation, rl.RayWhite)
 	}
 
 }
@@ -535,12 +569,12 @@ func updateGameOverState(game *GameState, delta float32) {
 
 	if game.gameOverTextAnimationTimer >= 0.75 {
 		game.state = HIGH_SCORE_INPUT
-		game.lastState = HIGH_SCORE_INPUT
+		game.lastState = GAME_OVER
 	}
 }
 
 func drawGameOverState(game *GameState) {
-	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.White)
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.RayWhite)
 
 	DrawHUD(game.textures, game.windowDimens, game.playerLives, game.playerPoints)
 
@@ -554,7 +588,7 @@ func drawGameOverState(game *GameState) {
 }
 
 func drawHighScoreInputLayer(game *GameState) {
-	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.NewColor(uint8(180), uint8(227), uint8(87), uint8(255)))
+	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.RayWhite)
 
 	DrawTextInput(game.textInput)
 }

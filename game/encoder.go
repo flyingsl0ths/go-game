@@ -5,30 +5,46 @@ import (
 	"os"
 )
 
-type Encoder struct {
+type Encoder[T any] struct {
 	file    *os.File
 	encoder *json.Encoder
 }
 
-func NewEncoder(filePath string) (Encoder, error) {
+func NewEncoder[T any](filePath string) (Encoder[T], error) {
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0600)
 
 	if err != nil {
-		return Encoder{}, err
+		return Encoder[T]{}, err
 	}
 
 	encoder := json.NewEncoder(file)
 
-	return Encoder{
+	return Encoder[T]{
 		file:    file,
 		encoder: encoder,
 	}, nil
 }
 
-func (e *Encoder) Encode(source any) error {
+func (e *Encoder[T]) Encode(source T) error {
 	return e.encoder.Encode(source)
 }
 
-func (e *Encoder) Close() error {
+func (e *Encoder[T]) Close() error {
 	return e.file.Close()
+}
+
+func DecodeInto[T any](filePath string, source T) (T, error) {
+	dat, err := os.ReadFile(filePath)
+
+	if err != nil {
+		return source, err
+	}
+
+	err = json.Unmarshal(dat, &source)
+
+	if err != nil {
+		return source, err
+	}
+
+	return source, nil
 }
