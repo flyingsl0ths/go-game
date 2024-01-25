@@ -8,8 +8,8 @@ type PlayerScore struct {
 }
 
 type ScoreBoard struct {
-	firstPosted bool
-	scores      [5]PlayerScore
+	FirstPosted bool           `json:"firstPosted"`
+	Scores      [5]PlayerScore `json:"scores"`
 }
 
 func HighestScore(highScores [5]PlayerScore, newScore PlayerScore) int {

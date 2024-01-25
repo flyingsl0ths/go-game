@@ -188,7 +188,7 @@ func handleHighScoreInput(game *GameState) {
 }
 
 func handleHighScoreEntered(game *GameState) {
-	encoder, err := NewEncoder[[5]PlayerScore](game.highScoresFilePath)
+	encoder, err := NewEncoder[ScoreBoard](game.highScoresFilePath)
 
 	defer encoder.Close()
 
@@ -196,19 +196,27 @@ func handleHighScoreEntered(game *GameState) {
 		game.exitGame = true
 	}
 
-	newScore := PlayerScore{PlayerName: string(game.textInput.text), Score: game.playerPoints}
-
-	newScorePos := HighestScore(game.highScores, newScore)
-
-	game.scores[newScorePos] = newScore
-
-	if err := encoder.Encode(game.highScores); err != nil {
-		game.exitGame = true
-	}
+	postHighScore(game, &encoder)
 
 	game.state = HIGH_SCORES
 
 	game.lastState = HIGH_SCORE_INPUT
+}
+
+func postHighScore(game *GameState, encoder *Encoder[ScoreBoard]) {
+	newScore := PlayerScore{PlayerName: string(game.textInput.text), Score: game.playerPoints}
+
+	if !game.scoreboard.FirstPosted {
+		game.scoreboard.FirstPosted = true
+		game.scoreboard.Scores[0] = newScore
+	} else {
+		newScorePos := HighestScore(game.scoreboard.Scores, newScore)
+		game.scoreboard.Scores[newScorePos] = newScore
+	}
+
+	if err := encoder.Encode(game.scoreboard); err != nil {
+		game.exitGame = true
+	}
 }
 
 func updateGameState(game *GameState, delta float32) {

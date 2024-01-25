@@ -42,7 +42,7 @@ type GameState struct {
 	playerOneUpCounter         uint32
 	player                     Player
 	playerPoints               uint32
-	scores                     ScoreBoard
+	scoreboard                 ScoreBoard
 	spriteSize                 float32
 	state                      State
 	textInput                  TextInput
@@ -111,7 +111,7 @@ func NewGameState(windowDimens [2]float32) GameState {
 		playerLives:        1,
 		playerOneUpCounter: 0,
 		playerPoints:       0,
-		scores:             scores,
+		scoreboard:         scores,
 		spriteSize:         spriteSize,
 		state:              TITLE,
 		textInput:          NewTextInput(GAME_FONT_SIZE, 10, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.RayWhite),
