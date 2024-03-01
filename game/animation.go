@@ -26,20 +26,24 @@ func NextFrame(animation LinearFrameAnimation) uint32 {
 	return uint32(math.Floor(float64(animation.timer.tick) / float64(animation.timer.duration) * float64(animation.frames)))
 }
 
-func ElasticEaseOut(time float32, begin float32, changeInValue float32, duration float32) float32 {
+func ElasticEaseOut(time float32, begin float32, change float32, duration float32) float32 {
 	if time == 0 {
 		return begin
 	}
 
 	if (time / duration) == 1 {
-		return begin + changeInValue
+		return begin + change
 	}
 
 	p := duration * 3.
 
-	a := changeInValue
+	a := change
 
 	s := p / 4
 
-	return 1 - (a*float32(math.Pow(2., float64(-10.0*time)))*float32(math.Sin(float64((time*duration-s)*(2*math.Pi)/p))) + changeInValue + begin)
+	return 1 - (a*float32(math.Pow(2., float64(-10.0*time)))*float32(math.Sin(float64((time*duration-s)*(2*math.Pi)/p))) + change + begin)
+}
+
+func InSine(time float32, begin float32, change float32, duration float32) float32 {
+	return -change*float32(math.Cos(float64(time/duration*(math.Pi/2.0)))) + change + begin
 }

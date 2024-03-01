@@ -26,10 +26,7 @@ func NewPlayer(spriteSheetPath string, startPosition rl.Vector2, ground float32,
 	jumpHeight := float32(300.0)
 
 	return Player{
-		animation: LinearFrameAnimation{
-			timer:  NewTimer(1.0, true),
-			frames: 5,
-		},
+		animation:    NewAnimation(1.0, true, 5),
 		fell:         false,
 		halt:         false,
 		stunTimer:    stunTimer(),

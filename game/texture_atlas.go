@@ -7,6 +7,7 @@ type TextureSheets struct {
 	buttons          rl.Texture2D
 	hud              rl.Texture2D
 	level            rl.Texture2D
+	pointer          rl.Texture2D
 	titleScreenImage rl.Texture2D
 }
 
@@ -17,17 +18,20 @@ type TextureAtlas struct {
 	objects       []rl.Rectangle
 	overlays      []rl.Rectangle
 	platforms     []rl.Rectangle
+	pointer       []rl.Rectangle
 	scenery       []rl.Rectangle
 	textureSheets TextureSheets
 }
 
 func (ta *TextureAtlas) Release() {
 	textureSheets := &ta.textureSheets
+
 	rl.UnloadTexture(textureSheets.bg)
 	rl.UnloadTexture(textureSheets.buttons)
 	rl.UnloadTexture(textureSheets.hud)
 	rl.UnloadTexture(textureSheets.level)
 	rl.UnloadTexture(textureSheets.titleScreenImage)
+	rl.UnloadTexture(textureSheets.pointer)
 }
 
 func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
@@ -36,6 +40,7 @@ func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
 	hud := rl.LoadImage(MkAssetDir("hud.png"))
 	buttons := rl.LoadImage(MkAssetDir("button.png"))
 	titleScreenImage := rl.LoadImage(MkAssetDir("title.png"))
+	pointer := rl.LoadImage(MkAssetDir("pointer.png"))
 
 	defer rl.UnloadImage(hud)
 	defer rl.UnloadImage(objects)
@@ -47,19 +52,21 @@ func NewTextureAtlas(windowSize [2]float32) TextureAtlas {
 
 	atlas := TextureAtlas{
 		textureSheets: TextureSheets{
-			level:            rl.LoadTextureFromImage(objects),
 			bg:               rl.LoadTextureFromImage(bg),
-			hud:              rl.LoadTextureFromImage(hud),
 			buttons:          rl.LoadTextureFromImage(buttons),
+			hud:              rl.LoadTextureFromImage(hud),
+			level:            rl.LoadTextureFromImage(objects),
+			pointer:          rl.LoadTextureFromImage(pointer),
 			titleScreenImage: rl.LoadTextureFromImage(titleScreenImage),
 		},
-		hud:       makeHUDRectangles(),
-		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),
-		overlays:  makeRectangles(2, 17, rl.NewVector2(105., 0.), 17, 16),
-		scenery:   makeRectangles(5, 16, rl.NewVector2(139., 0.), 16, 16),
-		food:      makeCollectables(),
-		objects:   makeRectangles(15, 16, rl.NewVector2(0., 64.), 16, 15),
 		buttons:   makeButtonRectangles(),
+		food:      makeCollectables(),
+		hud:       makeHUDRectangles(),
+		objects:   makeRectangles(15, 16, rl.NewVector2(0., 64.), 16, 15),
+		overlays:  makeRectangles(2, 17, rl.NewVector2(105., 0.), 17, 16),
+		platforms: makeRectangles(7, 15, rl.NewVector2(0., 0.), 15, 16),
+		pointer:   makeRectangles(10, 32, rl.NewVector2(0, 0), 32, 32),
+		scenery:   makeRectangles(5, 16, rl.NewVector2(139., 0.), 16, 16),
 	}
 
 	return atlas

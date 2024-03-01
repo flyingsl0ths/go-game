@@ -25,6 +25,7 @@ func RunGame(game *GameState, delta float32) {
 		onGameOver(game, delta)
 		break
 	case HIGH_SCORES:
+		onHighScoresState(game, delta)
 		break
 	}
 
@@ -177,6 +178,12 @@ func onHighScoreInput(game *GameState, delta float32) {
 	drawGameState(game)
 
 	drawHighScoreInputLayer(game)
+}
+
+func drawHighScoreInputLayer(game *GameState) {
+	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.RayWhite)
+
+	DrawTextInput(game.textInput)
 }
 
 func handleHighScoreInput(game *GameState) {
@@ -571,9 +578,10 @@ func onGameOver(game *GameState, delta float32) {
 }
 
 func updateGameOverState(game *GameState, delta float32) {
-	game.gameOverTextAnimationTimer += 0.0040
+	game.gameOverTextAnimationTimer += delta
+	const duration = 0.50
 
-	game.gameOverTextPos.Y += 10. * ElasticEaseOut(game.gameOverTextAnimationTimer, 0., 1., 0.5)
+	game.gameOverTextPos.Y = InSine(game.gameOverTextAnimationTimer, 0., 0.05, duration)
 
 	if game.gameOverTextAnimationTimer >= 0.75 {
 		game.state = HIGH_SCORE_INPUT
@@ -595,8 +603,53 @@ func drawGameOverState(game *GameState) {
 	DrawPlatforms(game.textures, game.windowDimens, game.spriteSize, game.platformHitBoxes)
 }
 
-func drawHighScoreInputLayer(game *GameState) {
-	rl.DrawTextEx(game.font, "ENTER YOUR NAME", game.highScoreNameBannerPos, GAME_FONT_SIZE, 0., rl.RayWhite)
+func onHighScoresState(game *GameState, delta float32) {
+	updateHighScoreState(game, delta)
 
-	DrawTextInput(game.textInput)
+	drawHighScoreState(game, delta)
+}
+
+func updateHighScoreState(game *GameState, delta float32) {
+	game.pointerAnimation = UpdateAnimation(game.pointerAnimation, delta)
+}
+
+func drawHighScoreState(game *GameState, delta float32) {
+	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.RayWhite)
+
+	rl.DrawTexture(game.textures.textureSheets.titleScreenImage, int32(game.titleScreenImagePos.X), int32(game.titleScreenImagePos.Y), rl.RayWhite)
+
+	drawHighScores(game, delta)
+
+	drawBackButton(game, delta)
+}
+
+func drawHighScores(game *GameState, delta float32) {
+	cx, cy := Center(game.windowDimens)
+
+	for index, score := range game.scoreboard.Scores {
+		if len(score.PlayerName) == 0 {
+			continue
+		}
+
+		playerNameTextSize := float32(rl.MeasureText(score.PlayerName, int32(GAME_FONT_SIZE)))
+		playerNameGlyphSize := float32(int32(playerNameTextSize) / int32(len(score.PlayerName)))
+
+		x := cx - playerNameTextSize*1.5
+		y := cy - GAME_FONT_SIZE*float32(index+1)
+
+		rl.DrawTextEx(game.font, score.PlayerName, rl.NewVector2(x, y), GAME_FONT_SIZE, 0., rl.Black)
+		rl.DrawTextEx(game.font, strconv.Itoa(int(score.Score)), rl.NewVector2(x+(playerNameTextSize*1.6)+playerNameGlyphSize*5, y), GAME_FONT_SIZE, 0., rl.Black)
+	}
+}
+
+func drawBackButton(game *GameState, delta float32) {
+	pointerSize := float32(game.textures.textureSheets.pointer.Height)
+
+	texture := game.textures.pointer[NextFrame(game.pointerAnimation)]
+
+	texture.Width = -texture.Width
+
+	rl.DrawTexturePro(game.textures.textureSheets.pointer, texture,
+		rl.NewRectangle(pointerSize+5, 600, pointerSize*3, pointerSize*3),
+		rl.NewVector2(pointerSize/2, pointerSize/2), 0., rl.RayWhite)
 }

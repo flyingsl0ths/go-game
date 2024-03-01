@@ -37,11 +37,12 @@ type GameState struct {
 	objects                    Spawner
 	pauseScreenButtons         []Button
 	platformHitBoxes           [TOTAL_PLATFORMS]HitBox
+	player                     Player
 	playerHitCounter           uint32
 	playerLives                uint32
 	playerOneUpCounter         uint32
-	player                     Player
 	playerPoints               uint32
+	pointerAnimation           LinearFrameAnimation
 	scoreboard                 ScoreBoard
 	spriteSize                 float32
 	state                      State
@@ -84,15 +85,23 @@ func NewGameState(windowDimens [2]float32) GameState {
 	}
 
 	return GameState{
-		collectables:               NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, levelSpawnBoundaries),
-		exitGame:                   false,
-		font:                       gameFont,
+		collectables: NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, levelSpawnBoundaries),
+
+		exitGame: false,
+
+		font: gameFont,
+
 		gameOverTextAnimationTimer: 0.,
-		gameOverTextPos:            rl.NewVector2(cX-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
-		highScoreNameBannerPos:     rl.NewVector2(cX-(GAME_FONT_SIZE*5.5), 150.),
-		highScoresFilePath:         highScoresFilePath,
-		lastState:                  TITLE,
-		objects:                    NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), levelSpawnBoundaries),
+
+		gameOverTextPos: rl.NewVector2(cX-(3*GAME_OVER_FONT_SIZE), 0-GAME_OVER_FONT_SIZE),
+
+		highScoreNameBannerPos: rl.NewVector2(cX-(GAME_FONT_SIZE*5.5), 150.),
+
+		highScoresFilePath: highScoresFilePath,
+
+		lastState: TITLE,
+
+		objects: NewSpawner(rl.GetFrameTime()*5, 300., len(textures.objects), len(textures.objects), levelSpawnBoundaries),
 
 		pauseScreenButtons: []Button{
 			NewButton(func(state *GameState) {
@@ -111,10 +120,11 @@ func NewGameState(windowDimens [2]float32) GameState {
 		playerLives:        1,
 		playerOneUpCounter: 0,
 		playerPoints:       0,
+		pointerAnimation:   NewAnimation(1.0, true, 10),
 		scoreboard:         scores,
 		spriteSize:         spriteSize,
 		state:              TITLE,
-		textInput:          NewTextInput(GAME_FONT_SIZE, 10, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.RayWhite),
+		textInput:          NewTextInput(GAME_FONT_SIZE, 5, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.RayWhite),
 		textures:           textures,
 		titleScreenButtons: ButtonGroup{
 			lastActive: 0,
