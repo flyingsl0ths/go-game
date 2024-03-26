@@ -15,11 +15,11 @@ func RunGame(game *GameState, delta float32) {
 	case TITLE:
 		onTitleState(game, delta)
 	case PAUSED:
-		onPauseState(game, delta)
+		onPauseState(game)
 	case GAME:
 		onGameState(game, delta)
 	case HIGH_SCORE_INPUT:
-		onHighScoreInput(game, delta)
+		onHighScoreInput(game)
 		break
 	case GAME_OVER:
 		onGameOver(game, delta)
@@ -116,13 +116,13 @@ func drawTitleScreenButtons(game *GameState) {
 	rl.DrawTextEx(buttonFont, "  EXIT", button.textPosition, GAME_FONT_SIZE, 0., buttonTextColor)
 }
 
-func onPauseState(game *GameState, delta float32) {
-	updatePauseScreenButtons(game, delta)
+func onPauseState(game *GameState) {
+	updatePauseScreenButtons(game)
 	drawGameState(game)
-	drawPauseScreenButtons(game, delta)
+	drawPauseScreenButtons(game)
 }
 
-func updatePauseScreenButtons(game *GameState, delta float32) {
+func updatePauseScreenButtons(game *GameState) {
 	total := len(game.pauseScreenButtons)
 
 	buttons := game.pauseScreenButtons
@@ -144,7 +144,7 @@ func updatePauseScreenButtons(game *GameState, delta float32) {
 	}
 }
 
-func drawPauseScreenButtons(game *GameState, delta float32) {
+func drawPauseScreenButtons(game *GameState) {
 	const BUTTON_WIDTH float32 = 281.
 	const BUTTON_HEIGHT float32 = 103.
 
@@ -172,7 +172,7 @@ func onGameState(game *GameState, delta float32) {
 	drawGameState(game)
 }
 
-func onHighScoreInput(game *GameState, delta float32) {
+func onHighScoreInput(game *GameState) {
 	handleHighScoreInput(game)
 
 	drawGameState(game)
@@ -604,26 +604,31 @@ func drawGameOverState(game *GameState) {
 }
 
 func onHighScoresState(game *GameState, delta float32) {
-	updateHighScoreState(game, delta)
+	updateHighScoresState(game, delta)
 
-	drawHighScoreState(game, delta)
+	drawHighScoresState(game)
 }
 
-func updateHighScoreState(game *GameState, delta float32) {
+func updateHighScoresState(game *GameState, delta float32) {
 	game.pointerAnimation = UpdateAnimation(game.pointerAnimation, delta)
+
+	if rl.IsMouseButtonReleased(rl.MouseLeftButton) && rl.CheckCollisionPointRec(rl.GetMousePosition(), game.pointerDimensions) {
+		game.state = game.lastState
+		game.lastState = HIGH_SCORES
+	}
 }
 
-func drawHighScoreState(game *GameState, delta float32) {
+func drawHighScoresState(game *GameState) {
 	rl.DrawTexture(game.textures.textureSheets.bg, 0, 0, rl.RayWhite)
 
 	rl.DrawTexture(game.textures.textureSheets.titleScreenImage, int32(game.titleScreenImagePos.X), int32(game.titleScreenImagePos.Y), rl.RayWhite)
 
-	drawHighScores(game, delta)
+	drawHighScores(game)
 
-	drawBackButton(game, delta)
+	drawBackButton(game)
 }
 
-func drawHighScores(game *GameState, delta float32) {
+func drawHighScores(game *GameState) {
 	cx, cy := Center(game.windowDimens)
 
 	for index, score := range game.scoreboard.Scores {
@@ -642,7 +647,7 @@ func drawHighScores(game *GameState, delta float32) {
 	}
 }
 
-func drawBackButton(game *GameState, delta float32) {
+func drawBackButton(game *GameState) {
 	pointerSize := float32(game.textures.textureSheets.pointer.Height)
 
 	texture := game.textures.pointer[NextFrame(game.pointerAnimation)]
@@ -650,6 +655,6 @@ func drawBackButton(game *GameState, delta float32) {
 	texture.Width = -texture.Width
 
 	rl.DrawTexturePro(game.textures.textureSheets.pointer, texture,
-		rl.NewRectangle(pointerSize+5, 600, pointerSize*3, pointerSize*3),
+		game.pointerDimensions,
 		rl.NewVector2(pointerSize/2, pointerSize/2), 0., rl.RayWhite)
 }

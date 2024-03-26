@@ -43,6 +43,7 @@ type GameState struct {
 	playerOneUpCounter         uint32
 	playerPoints               uint32
 	pointerAnimation           LinearFrameAnimation
+	pointerDimensions          rl.Rectangle
 	scoreboard                 ScoreBoard
 	spriteSize                 float32
 	state                      State
@@ -114,29 +115,36 @@ func NewGameState(windowDimens [2]float32) GameState {
 				state.state = TITLE
 			}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), cY-GAME_FONT_SIZE*0.15))},
 
-		platformHitBoxes:   makePlatforms(cY+spriteSize*2., spriteSize),
+		platformHitBoxes:   makePlatforms(int(windowDimens[0]), cY+spriteSize*2., spriteSize),
 		player:             NewPlayer(MkAssetDir("player.png"), rl.NewVector2(100, cY+spriteSize+20.), cY+spriteSize+32., spriteSize+32.),
 		playerHitCounter:   0,
 		playerLives:        1,
 		playerOneUpCounter: 0,
 		playerPoints:       0,
 		pointerAnimation:   NewAnimation(1.0, true, 10),
-		scoreboard:         scores,
-		spriteSize:         spriteSize,
-		state:              TITLE,
-		textInput:          NewTextInput(GAME_FONT_SIZE, 5, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.RayWhite),
-		textures:           textures,
+		pointerDimensions: func() rl.Rectangle {
+			pointerSize := float32(textures.textureSheets.pointer.Height)
+			return rl.NewRectangle(pointerSize+5, 600, pointerSize*3, pointerSize*3)
+		}(),
+		scoreboard: scores,
+		spriteSize: spriteSize,
+		state:      TITLE,
+		textInput:  NewTextInput(GAME_FONT_SIZE, 5, rl.NewVector2(cX-(GAME_FONT_SIZE*3.5), 250.), rl.RayWhite),
+		textures:   textures,
 		titleScreenButtons: ButtonGroup{
 			lastActive: 0,
 			buttons: []Button{
 				NewButton(func(state *GameState) {
 					state.state = GAME
 
-					if state.lastState == PAUSED {
+					if state.lastState == PAUSED || state.lastState == HIGH_SCORES {
 						ResetGameState(state)
 					}
 				}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), 275.)),
-				NewButton(func(state *GameState) { state.state = HIGH_SCORES }, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), 400.)),
+				NewButton(func(state *GameState) {
+					state.lastState = state.state
+					state.state = HIGH_SCORES
+				}, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), 400.)),
 				NewButton(func(state *GameState) { state.exitGame = true }, rl.NewVector2(cX-(GAME_FONT_SIZE*1.5), 525.))}},
 		titleScreenCollectables: NewSpawner(rl.GetFrameTime()*20, 200., len(textures.food), len(textures.food)/3, Boundaries{
 			bottom: windowDimens[1] + spriteSize*2.0,
@@ -153,9 +161,9 @@ func (state *GameState) Release() {
 	state.textures.Release()
 }
 
-func makePlatforms(yPos float32, platformSize float32) [TOTAL_PLATFORMS]HitBox {
+func makePlatforms(windowWidth int, yPos float32, platformSize float32) [TOTAL_PLATFORMS]HitBox {
 	// WINDOW WIDTH / platformSize
-	total := int(1280 / platformSize)
+	total := windowWidth / int(platformSize)
 
 	rs := [TOTAL_PLATFORMS]HitBox{}
 
